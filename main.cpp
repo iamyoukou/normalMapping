@@ -257,6 +257,7 @@ int main(int argc, char **argv) {
   }
 
   delete[] aVtxCoords;
+  delete[] aUvs;
   delete[] aNormals;
 
   glDeleteBuffers(1, &vboVtxCoords);

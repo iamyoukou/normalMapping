@@ -68,6 +68,9 @@ int main(int argc, char **argv) {
   glfwSetKeyCallback(window, keyCallback);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+  // // initial cursor state
+  glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+
   /* Initialize GLEW */
   // without this, glGenVertexArrays will report ERROR!
   glewExperimental = GL_TRUE;
@@ -235,25 +238,38 @@ int main(int argc, char **argv) {
   glUniformMatrix4fv(uniform_V, 1, GL_FALSE, value_ptr(view));
   glUniformMatrix4fv(uniform_P, 1, GL_FALSE, value_ptr(projection));
 
+  GLuint frameNumber = 0;
+
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window)) {
-    /* Render here */
+    // reset
     glClearColor(0.f, 0.f, 0.4f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    double x, y;
+    glfwGetCursorPos(window, &x, &y);
+    std::cout << "frame " << frameNumber << ": " << x << ", " << y << '\n';
+
     // view control
-    computeMatricesFromInputs(projection, view);
-    glUniformMatrix4fv(uniform_V, 1, GL_FALSE, value_ptr(view));
-    glUniformMatrix4fv(uniform_P, 1, GL_FALSE, value_ptr(projection));
+    if (frameNumber > 3) {
+      computeMatricesFromInputs(projection, view);
+      glUniformMatrix4fv(uniform_V, 1, GL_FALSE, value_ptr(view));
+      glUniformMatrix4fv(uniform_P, 1, GL_FALSE, value_ptr(projection));
 
-    // draw 3d model
-    glDrawArrays(GL_TRIANGLES, 0, nOfFaces * 3);
+      // draw 3d model
+      glDrawArrays(GL_TRIANGLES, 0, nOfFaces * 3);
 
-    /* Swap front and back buffers */
-    glfwSwapBuffers(window);
+      /* Swap front and back buffers */
+      glfwSwapBuffers(window);
+
+    } else {
+      glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+    }
 
     /* Poll for and process events */
     glfwPollEvents();
+
+    frameNumber++;
   }
 
   delete[] aVtxCoords;
@@ -283,6 +299,8 @@ void computeMatricesFromInputs(mat4 &newProject, mat4 &newView) {
   // Get mouse position
   double xpos, ypos;
   glfwGetCursorPos(window, &xpos, &ypos);
+
+  // std::cout << xpos << ", " << ypos << '\n';
 
   // Reset mouse position for next frame
   glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
@@ -349,9 +367,10 @@ void keyCallback(GLFWwindow *keyWnd, int key, int scancode, int action,
       break;
     }
     case GLFW_KEY_I: {
-      std::cout << "eyePoint: " << to_string(eyePoint) << '\n';
-      std::cout << "verticleAngle: " << fmod(verticalAngle, 6.28f) << ", "
-                << "horizontalAngle: " << fmod(horizontalAngle, 6.28f) << endl;
+      // std::cout << "eyePoint: " << to_string(eyePoint) << '\n';
+      // std::cout << "verticleAngle: " << fmod(verticalAngle, 6.28f) << ", "
+      //           << "horizontalAngle: " << fmod(horizontalAngle, 6.28f) <<
+      //           endl;
       break;
     }
     default:

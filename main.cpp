@@ -41,6 +41,8 @@ void initGL();
 void initOthers();
 void initMatrices();
 void initLight();
+void initTexture();
+GLuint createTexture(GLuint, GLuint, string, string, FREE_IMAGE_FORMAT);
 
 int main(int argc, char **argv) {
   initGL();
@@ -142,40 +144,7 @@ int main(int argc, char **argv) {
   glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(2);
 
-  // base texture
-  GLuint texUnitBase = 10;
-  glActiveTexture(GL_TEXTURE0 + texUnitBase);
-
-  FIBITMAP *texBase =
-      FreeImage_ConvertTo24Bits(FreeImage_Load(FIF_JPEG, "rock_basecolor.jpg"));
-
-  glGenTextures(1, &tboBase);
-  glBindTexture(GL_TEXTURE_2D, tboBase);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texBase),
-               FreeImage_GetHeight(texBase), 0, GL_BGR, GL_UNSIGNED_BYTE,
-               (void *)FreeImage_GetBits(texBase));
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-  uniTexBase = myGetUniformLocation(exeShader, "texBase");
-  glUniform1i(uniTexBase, texUnitBase);
-
-  // normal texture
-  GLuint texUnitNormal = 11;
-  glActiveTexture(GL_TEXTURE0 + texUnitNormal);
-
-  FIBITMAP *texNormal =
-      FreeImage_ConvertTo24Bits(FreeImage_Load(FIF_JPEG, "rock_normal.jpg"));
-
-  glGenTextures(1, &tboNormal);
-  glBindTexture(GL_TEXTURE_2D, tboNormal);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texNormal),
-               FreeImage_GetHeight(texNormal), 0, GL_BGR, GL_UNSIGNED_BYTE,
-               (void *)FreeImage_GetBits(texNormal));
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-  uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
-  glUniform1i(uniTexNormal, texUnitNormal);
-
+  initTexture();
   initMatrices();
   initLight();
 
@@ -220,6 +189,30 @@ int main(int argc, char **argv) {
   FreeImage_DeInitialise();
 
   return EXIT_SUCCESS;
+}
+
+GLuint createTexture(GLuint texUnit, GLuint shader, string samplerName,
+                     string imgDir, FREE_IMAGE_FORMAT imgType) {
+  glActiveTexture(GL_TEXTURE0 + texUnit);
+
+  FIBITMAP *texImage =
+      FreeImage_ConvertTo24Bits(FreeImage_Load(imgType, imgDir.c_str()));
+
+  GLuint tboTex;
+  glGenTextures(1, &tboTex);
+  glBindTexture(GL_TEXTURE_2D, tboTex);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texImage),
+               FreeImage_GetHeight(texImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
+               (void *)FreeImage_GetBits(texImage));
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  uniTexBase = myGetUniformLocation(shader, samplerName);
+  glUniform1i(uniTexBase, texUnit);
+
+  // release
+  FreeImage_Unload(texImage);
+
+  return tboTex;
 }
 
 void computeMatricesFromInputs(mat4 &newProject, mat4 &newView) {
@@ -398,4 +391,13 @@ void initLight() { // light
 
   uniSpecular = myGetUniformLocation(exeShader, "specularColor");
   glUniform3fv(uniSpecular, 1, value_ptr(materialSpecularColor));
+}
+
+void initTexture() { // base texture
+  tboBase =
+      createTexture(10, exeShader, "texBase", "rock_basecolor.jpg", FIF_JPEG);
+
+  // normal texture
+  tboNormal =
+      createTexture(11, exeShader, "texNormal", "rock_normal.jpg", FIF_JPEG);
 }

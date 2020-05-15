@@ -11,7 +11,7 @@ uniform vec3 lightColor;
 out vec4 outputColor;
 
 void main(){
-    float alpha = 0.55;
+    float alpha = 0.75;
     // outputColor = texture(texNormal, uv);
     // outputColor = (1 - alpha)*vec4( fragmentColor, 1.0 ) + alpha*texture(texBase, uv);
     //

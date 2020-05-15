@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
   glUseProgram(program);
 
   // load mesh
-  mesh_info_t mesh = load_obj("stone_box.obj");
+  mesh_info_t mesh = load_obj("cube.obj");
   // mesh_info_t mesh = load_obj("stone_monkey.obj");
   // mesh_info_t mesh = load_obj("sand_pool.obj");
 
@@ -177,7 +177,6 @@ int main(int argc, char **argv) {
       FreeImage_ConvertTo24Bits(FreeImage_Load(FIF_JPEG, "rock_basecolor.jpg"));
 
   GLuint activeTex = 10;
-  std::cout << "active tex = " << activeTex << '\n';
 
   glGenTextures(1, &textureObject);
   glBindTexture(GL_TEXTURE_2D, textureObject);

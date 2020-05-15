@@ -5,20 +5,20 @@ GLFWwindow *window;
 
 vec3 lightPosition = vec3(3.f, 3.f, 3.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
-float lightPower = 12.f;
+float lightPower = 1.f;
 
 vec3 materialDiffuseColor = vec3(0.1f, 0.1f, 0.1f);
 vec3 materialAmbientColor = vec3(0.1f, 0.1f, 0.1f);
 vec3 materialSpecularColor = vec3(1.f, 1.f, 1.f);
 
-float verticalAngle = -2.12295;
-float horizontalAngle = 0.368302;
+float verticalAngle = -1.51191;
+float horizontalAngle = -0.0948035;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
 
 mat4 model, view, projection;
-vec3 eyePoint = vec3(3.071370, 1.898959, 0.844230);
+vec3 eyePoint = vec3(2.088317, -0.040358, -0.151899);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));
@@ -26,12 +26,12 @@ vec3 up = vec3(0.f, 1.f, 0.f);
 
 GLuint vboVtxCoords, vboUvs, vboNormals;
 GLuint vao;
-GLuint texObj;
-GLint uniform_M, uniform_V, uniform_P, uniform_mvp;
-GLint uniform_lightColor, uniform_lightPosition, uniform_lightPower;
+GLuint tboBase, tboNormal;
+GLint uniM, uniV, uniP, uniMvp;
+GLint uniLightColor, uniLightPosition, uniLightPower;
 // material diffuse, ambient, specular color
-GLint uniform_diffuseColor, uniform_ambientColor, uniform_specularColor;
-GLint uniform_tex;
+GLint uniDiffuse, uniAmbient, uniSpecular;
+GLint uniTexBase, uniTexNormal;
 
 void computeMatricesFromInputs(mat4 &, mat4 &);
 void keyCallback(GLFWwindow *, int, int, int, int);
@@ -55,8 +55,8 @@ int main(int argc, char **argv) {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   // Open a window and create its OpenGL context
-  window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT,
-                            "GLFW window with AntTweakBar", NULL, NULL);
+  window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "With normal mapping",
+                            NULL, NULL);
 
   if (window == NULL) {
     std::cout << "Failed to open GLFW window." << std::endl;
@@ -181,46 +181,63 @@ int main(int argc, char **argv) {
   glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(2);
 
-  // texture
-  FIBITMAP *texImage =
+  // base texture
+  GLuint texUnitBase = 10;
+  glActiveTexture(GL_TEXTURE0 + texUnitBase);
+
+  FIBITMAP *texBase =
       FreeImage_ConvertTo24Bits(FreeImage_Load(FIF_JPEG, "rock_basecolor.jpg"));
 
-  GLuint texUnit = 10;
-
-  glGenTextures(1, &texObj);
-  glBindTexture(GL_TEXTURE_2D, texObj);
-  glActiveTexture(GL_TEXTURE0 + texUnit);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texImage),
-               FreeImage_GetHeight(texImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
-               (void *)FreeImage_GetBits(texImage));
+  glGenTextures(1, &tboBase);
+  glBindTexture(GL_TEXTURE_2D, tboBase);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texBase),
+               FreeImage_GetHeight(texBase), 0, GL_BGR, GL_UNSIGNED_BYTE,
+               (void *)FreeImage_GetBits(texBase));
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-  uniform_tex = myGetUniformLocation(exeShader, "tex");
-  glUniform1i(uniform_tex, texUnit);
+  uniTexBase = myGetUniformLocation(exeShader, "texBase");
+  glUniform1i(uniTexBase, texUnitBase);
+
+  // normal texture
+  GLuint texUnitNormal = 11;
+  glActiveTexture(GL_TEXTURE0 + texUnitNormal);
+
+  FIBITMAP *texNormal =
+      FreeImage_ConvertTo24Bits(FreeImage_Load(FIF_JPEG, "rock_normal.jpg"));
+
+  glGenTextures(1, &tboNormal);
+  glBindTexture(GL_TEXTURE_2D, tboNormal);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texNormal),
+               FreeImage_GetHeight(texNormal), 0, GL_BGR, GL_UNSIGNED_BYTE,
+               (void *)FreeImage_GetBits(texNormal));
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
+  glUniform1i(uniTexNormal, texUnitNormal);
 
   // transform matrix
-  uniform_M = myGetUniformLocation(exeShader, "M");
-  uniform_V = myGetUniformLocation(exeShader, "V");
-  uniform_P = myGetUniformLocation(exeShader, "P");
+  uniM = myGetUniformLocation(exeShader, "M");
+  uniV = myGetUniformLocation(exeShader, "V");
+  uniP = myGetUniformLocation(exeShader, "P");
 
   // light
-  uniform_lightColor = myGetUniformLocation(exeShader, "lightColor");
-  glUniform3fv(uniform_lightColor, 1, value_ptr(lightColor));
+  uniLightColor = myGetUniformLocation(exeShader, "lightColor");
+  glUniform3fv(uniLightColor, 1, value_ptr(lightColor));
 
-  uniform_lightPosition = myGetUniformLocation(exeShader, "lightPosition");
-  glUniform3fv(uniform_lightPosition, 1, value_ptr(lightPosition));
+  uniLightPosition = myGetUniformLocation(exeShader, "lightPosition");
+  glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
 
-  uniform_lightPower = myGetUniformLocation(exeShader, "lightPower");
-  glUniform1f(uniform_lightPower, lightPower);
+  uniLightPower = myGetUniformLocation(exeShader, "lightPower");
+  glUniform1f(uniLightPower, lightPower);
 
-  uniform_diffuseColor = myGetUniformLocation(exeShader, "diffuseColor");
-  glUniform3fv(uniform_diffuseColor, 1, value_ptr(materialDiffuseColor));
+  uniDiffuse = myGetUniformLocation(exeShader, "diffuseColor");
+  glUniform3fv(uniDiffuse, 1, value_ptr(materialDiffuseColor));
 
-  uniform_ambientColor = myGetUniformLocation(exeShader, "ambientColor");
-  glUniform3fv(uniform_ambientColor, 1, value_ptr(materialAmbientColor));
+  uniAmbient = myGetUniformLocation(exeShader, "ambientColor");
+  glUniform3fv(uniAmbient, 1, value_ptr(materialAmbientColor));
 
-  uniform_specularColor = myGetUniformLocation(exeShader, "specularColor");
-  glUniform3fv(uniform_specularColor, 1, value_ptr(materialSpecularColor));
+  uniSpecular = myGetUniformLocation(exeShader, "specularColor");
+  glUniform3fv(uniSpecular, 1, value_ptr(materialSpecularColor));
 
   mat4 model = translate(mat4(1.f), vec3(0.f, 0.f, 0.f));
   mat4 view = lookAt(eyePoint,     // eye position
@@ -231,9 +248,9 @@ int main(int argc, char **argv) {
   mat4 projection =
       perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
 
-  glUniformMatrix4fv(uniform_M, 1, GL_FALSE, value_ptr(model));
-  glUniformMatrix4fv(uniform_V, 1, GL_FALSE, value_ptr(view));
-  glUniformMatrix4fv(uniform_P, 1, GL_FALSE, value_ptr(projection));
+  glUniformMatrix4fv(uniM, 1, GL_FALSE, value_ptr(model));
+  glUniformMatrix4fv(uniV, 1, GL_FALSE, value_ptr(view));
+  glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
 
   GLuint frameNumber = 0;
 
@@ -251,8 +268,8 @@ int main(int argc, char **argv) {
 
     // view control
     computeMatricesFromInputs(projection, view);
-    glUniformMatrix4fv(uniform_V, 1, GL_FALSE, value_ptr(view));
-    glUniformMatrix4fv(uniform_P, 1, GL_FALSE, value_ptr(projection));
+    glUniformMatrix4fv(uniV, 1, GL_FALSE, value_ptr(view));
+    glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
 
     // draw 3d model
     glDrawArrays(GL_TRIANGLES, 0, nOfFaces * 3);
@@ -273,7 +290,7 @@ int main(int argc, char **argv) {
   glDeleteBuffers(1, &vboVtxCoords);
   glDeleteBuffers(1, &vboUvs);
   glDeleteBuffers(1, &vboNormals);
-  glDeleteTextures(1, &texObj);
+  glDeleteTextures(1, &tboBase);
   glDeleteVertexArrays(1, &vao);
 
   glfwTerminate();
@@ -361,10 +378,9 @@ void keyCallback(GLFWwindow *keyWnd, int key, int scancode, int action,
       break;
     }
     case GLFW_KEY_I: {
-      // std::cout << "eyePoint: " << to_string(eyePoint) << '\n';
-      // std::cout << "verticleAngle: " << fmod(verticalAngle, 6.28f) << ", "
-      //           << "horizontalAngle: " << fmod(horizontalAngle, 6.28f) <<
-      //           endl;
+      std::cout << "eyePoint: " << to_string(eyePoint) << '\n';
+      std::cout << "verticleAngle: " << fmod(verticalAngle, 6.28f) << ", "
+                << "horizontalAngle: " << fmod(horizontalAngle, 6.28f) << endl;
       break;
     }
     default:

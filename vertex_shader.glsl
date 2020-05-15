@@ -1,10 +1,11 @@
 #version 330
-layout( location = 0 ) in vec3 vertex_coord;
-layout( location = 1 ) in vec2 texture_coord;
+layout( location = 0 ) in vec3 vtxCoord;
+layout( location = 1 ) in vec2 texUv;
 layout( location = 2 ) in vec3 normal;
 
 out vec3 fragmentColor;
-out vec2 tex_coord;
+out vec2 uv;
+out vec3 lightDir;
 
 uniform mat4 M, V, P;
 uniform vec3 lightColor, lightPosition;
@@ -13,10 +14,10 @@ uniform float lightPower;
 
 void main(){
     //projection plane
-    gl_Position = P * V * M * vec4( vertex_coord, 1.0 );
+    gl_Position = P * V * M * vec4( vtxCoord, 1.0 );
 
     //view space
-    vec3 vPosition_viewspace = ( V * M * vec4( vertex_coord, 1.0 ) ).xyz;
+    vec3 vPosition_viewspace = ( V * M * vec4( vtxCoord, 1.0 ) ).xyz;
 
     //transforming normal is different with transforming vertex
     vec3 vNormal_viewspace = (
@@ -63,5 +64,8 @@ void main(){
     //with no distance damping
     fragmentColor += specularColor * lightColor * lightPower * pow( cosAlpha, 5 );
 
-    tex_coord = texture_coord;
+    uv = texUv;
+
+    lightDir = (M * vec4(lightPosition - vtxCoord, 1.0)).xyz;
+    lightDir = normalize(lightDir);
 }

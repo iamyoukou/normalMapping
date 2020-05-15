@@ -251,6 +251,12 @@ int main(int argc, char **argv) {
     std::cout << "frame " << frameNumber << ": " << x << ", " << y << '\n';
 
     // view control
+    // IS IT A GLFW BUG?
+    // For the first 2 frames, glfwSetCursorPos doesn't work,
+    // and the cursor is set to be its previous position.
+    // That is, if I move the cursor to position (x0, y0) before executing this
+    // program, the cursor is set to be (x0, y0), and cannot be reset by
+    // glfwSetCurcorPos in the first 2 frames.
     if (frameNumber > 3) {
       computeMatricesFromInputs(projection, view);
       glUniformMatrix4fv(uniform_V, 1, GL_FALSE, value_ptr(view));

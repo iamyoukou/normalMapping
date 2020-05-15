@@ -68,9 +68,6 @@ int main(int argc, char **argv) {
   glfwSetKeyCallback(window, keyCallback);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-  // // initial cursor state
-  glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
-
   /* Initialize GLEW */
   // without this, glGenVertexArrays will report ERROR!
   glewExperimental = GL_TRUE;
@@ -240,37 +237,28 @@ int main(int argc, char **argv) {
 
   GLuint frameNumber = 0;
 
+  // a rough way to solve cursor position initialization problem
+  // must call glfwPollEvents once to activate glfwSetCursorPos
+  // this is a glfw mechanism problem
+  glfwPollEvents();
+  glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window)) {
     // reset
     glClearColor(0.f, 0.f, 0.4f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    double x, y;
-    glfwGetCursorPos(window, &x, &y);
-    std::cout << "frame " << frameNumber << ": " << x << ", " << y << '\n';
-
     // view control
-    // IS IT A GLFW BUG?
-    // For the first 2 frames, glfwSetCursorPos doesn't work,
-    // and the cursor is set to be its previous position.
-    // That is, if I move the cursor to position (x0, y0) before executing this
-    // program, the cursor is set to be (x0, y0), and cannot be reset by
-    // glfwSetCurcorPos in the first 2 frames.
-    if (frameNumber > 3) {
-      computeMatricesFromInputs(projection, view);
-      glUniformMatrix4fv(uniform_V, 1, GL_FALSE, value_ptr(view));
-      glUniformMatrix4fv(uniform_P, 1, GL_FALSE, value_ptr(projection));
+    computeMatricesFromInputs(projection, view);
+    glUniformMatrix4fv(uniform_V, 1, GL_FALSE, value_ptr(view));
+    glUniformMatrix4fv(uniform_P, 1, GL_FALSE, value_ptr(projection));
 
-      // draw 3d model
-      glDrawArrays(GL_TRIANGLES, 0, nOfFaces * 3);
+    // draw 3d model
+    glDrawArrays(GL_TRIANGLES, 0, nOfFaces * 3);
 
-      /* Swap front and back buffers */
-      glfwSwapBuffers(window);
-
-    } else {
-      glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
-    }
+    /* Swap front and back buffers */
+    glfwSwapBuffers(window);
 
     /* Poll for and process events */
     glfwPollEvents();

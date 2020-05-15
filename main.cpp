@@ -11,22 +11,22 @@ vec3 materialDiffuseColor = vec3(0.1f, 0.1f, 0.1f);
 vec3 materialAmbientColor = vec3(0.1f, 0.1f, 0.1f);
 vec3 materialSpecularColor = vec3(1.f, 1.f, 1.f);
 
-float verticalAngle = -1.775f;
-float horizontalAngle = 0.935f;
+float verticalAngle = -2.12295;
+float horizontalAngle = 0.368302;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
 
 mat4 model, view, projection;
-vec3 eyePoint = vec3(2.f, 1.2f, -0.8f);
+vec3 eyePoint = vec3(3.071370, 1.898959, 0.844230);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));
 vec3 up = vec3(0.f, 1.f, 0.f);
 
-GLuint vboVertexCoords, vboTextureCoords, vboNormalCoords;
+GLuint vboVtxCoords, vboUvs, vboNormals;
 GLuint vao;
-GLuint textureObject;
+GLuint texObj;
 GLint uniform_M, uniform_V, uniform_P, uniform_mvp;
 GLint uniform_lightColor, uniform_lightPosition, uniform_lightPower;
 // material diffuse, ambient, specular color
@@ -84,63 +84,73 @@ int main(int argc, char **argv) {
 
   FreeImage_Initialise(true);
 
-  /* compile and link shaders */
-  // must compile and link shaders BEFORE initializing AntTweakBar!
-  GLuint vs = create_shader("vertex_shader.glsl", GL_VERTEX_SHADER);
-  GLuint fs = create_shader("fragment_shader.glsl", GL_FRAGMENT_SHADER);
+  // build shader program
+  GLuint exeShader = buildShader("vertex_shader.glsl", "fragment_shader.glsl");
 
-  GLuint program = glCreateProgram();
-  glAttachShader(program, vs);
-  glAttachShader(program, fs);
-
-  glLinkProgram(program);
-  GLint link_ok;
-  glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
-
-  if (link_ok == GL_FALSE) {
-    std::cout << "Link failed." << std::endl;
-  }
-
-  glUseProgram(program);
+  glUseProgram(exeShader);
 
   // load mesh
-  mesh_info_t mesh = load_obj("cube.obj");
-  // mesh_info_t mesh = load_obj("stone_monkey.obj");
-  // mesh_info_t mesh = load_obj("sand_pool.obj");
+  Mesh mesh = loadObj("cube.obj");
 
   // write vertex coordinate to array
-  FACE_INFO &faces = mesh.faceInfos[0];
-  int faceNumber = faces.size();
+  int nOfFaces = mesh.faces.size();
 
-  // every face includes 3 vertices, so faceNumber*3
-  // every vertex coord includes 3 components, so faceNumber*3*3
-  GLfloat *vertex_coords = new GLfloat[faceNumber * 3 * 3];
-  GLfloat *texture_coords = new GLfloat[faceNumber * 3 * 2];
-  GLfloat *normal_coords = new GLfloat[faceNumber * 3 * 3];
+  // 3 vertices per face, 3 float per vertex coord, 2 float per tex coord
+  GLfloat *aVtxCoords = new GLfloat[nOfFaces * 3 * 3];
+  GLfloat *aUvs = new GLfloat[nOfFaces * 3 * 2];
+  GLfloat *aNormals = new GLfloat[nOfFaces * 3 * 3];
 
-  for (size_t i = 0; i < faceNumber; i++) {
-    // vertex coords
-    for (size_t j = 0; j < 3; j++) {
-      int idxVertex = faces[i].vertexIndices[j];
-      vertex_coords[i * 9 + j * 3 + 0] = mesh.vertexCoords[idxVertex].x;
-      vertex_coords[i * 9 + j * 3 + 1] = mesh.vertexCoords[idxVertex].y;
-      vertex_coords[i * 9 + j * 3 + 2] = mesh.vertexCoords[idxVertex].z;
-    }
+  for (size_t i = 0; i < nOfFaces; i++) {
+    // vertex 1
+    int vtxIdx = mesh.faces[i].v1;
+    aVtxCoords[i * 9 + 0] = mesh.vertices[vtxIdx].x;
+    aVtxCoords[i * 9 + 1] = mesh.vertices[vtxIdx].y;
+    aVtxCoords[i * 9 + 2] = mesh.vertices[vtxIdx].z;
 
-    // texture coords
-    for (size_t j = 0; j < 3; j++) {
-      int idxTexture = faces[i].textureCoordIndices[j];
-      texture_coords[i * 6 + j * 2 + 0] = mesh.textureCoords[idxTexture].x;
-      texture_coords[i * 6 + j * 2 + 1] = mesh.textureCoords[idxTexture].y;
-    }
+    // normal for vertex 1
+    int nmlIdx = mesh.faces[i].vn1;
+    aNormals[i * 9 + 0] = mesh.faceNormals[nmlIdx].x;
+    aNormals[i * 9 + 1] = mesh.faceNormals[nmlIdx].y;
+    aNormals[i * 9 + 2] = mesh.faceNormals[nmlIdx].z;
 
-    // normals
-    for (size_t j = 0; j < 3; j++) {
-      int idxNormal = faces[i].normalIndices[j];
-      normal_coords[i * 9 + j * 3 + 0] = mesh.vertexNormals[idxNormal].x;
-      normal_coords[i * 9 + j * 3 + 1] = mesh.vertexNormals[idxNormal].y;
-      normal_coords[i * 9 + j * 3 + 2] = mesh.vertexNormals[idxNormal].z;
-    }
+    // uv for vertex 1
+    int uvIdx = mesh.faces[i].vt1;
+    aUvs[i * 6 + 0] = mesh.uvs[uvIdx].x;
+    aUvs[i * 6 + 1] = mesh.uvs[uvIdx].y;
+
+    // vertex 2
+    vtxIdx = mesh.faces[i].v2;
+    aVtxCoords[i * 9 + 3] = mesh.vertices[vtxIdx].x;
+    aVtxCoords[i * 9 + 4] = mesh.vertices[vtxIdx].y;
+    aVtxCoords[i * 9 + 5] = mesh.vertices[vtxIdx].z;
+
+    // normal for vertex 2
+    nmlIdx = mesh.faces[i].vn2;
+    aNormals[i * 9 + 3] = mesh.faceNormals[nmlIdx].x;
+    aNormals[i * 9 + 4] = mesh.faceNormals[nmlIdx].y;
+    aNormals[i * 9 + 5] = mesh.faceNormals[nmlIdx].z;
+
+    // uv for vertex 2
+    uvIdx = mesh.faces[i].vt2;
+    aUvs[i * 6 + 2] = mesh.uvs[uvIdx].x;
+    aUvs[i * 6 + 3] = mesh.uvs[uvIdx].y;
+
+    // vertex 3
+    vtxIdx = mesh.faces[i].v3;
+    aVtxCoords[i * 9 + 6] = mesh.vertices[vtxIdx].x;
+    aVtxCoords[i * 9 + 7] = mesh.vertices[vtxIdx].y;
+    aVtxCoords[i * 9 + 8] = mesh.vertices[vtxIdx].z;
+
+    // normal for vertex 3
+    nmlIdx = mesh.faces[i].vn3;
+    aNormals[i * 9 + 6] = mesh.faceNormals[nmlIdx].x;
+    aNormals[i * 9 + 7] = mesh.faceNormals[nmlIdx].y;
+    aNormals[i * 9 + 8] = mesh.faceNormals[nmlIdx].z;
+
+    // uv for vertex 3
+    uvIdx = mesh.faces[i].vt3;
+    aUvs[i * 6 + 4] = mesh.uvs[uvIdx].x;
+    aUvs[i * 6 + 5] = mesh.uvs[uvIdx].y;
   }
 
   // vao
@@ -148,79 +158,78 @@ int main(int argc, char **argv) {
   glBindVertexArray(vao);
 
   // vbo for vertex
-  glGenBuffers(1, &vboVertexCoords);
-  glBindBuffer(GL_ARRAY_BUFFER, vboVertexCoords);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * faceNumber * 3 * 3,
-               vertex_coords, GL_STATIC_DRAW);
+  glGenBuffers(1, &vboVtxCoords);
+  glBindBuffer(GL_ARRAY_BUFFER, vboVtxCoords);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * nOfFaces * 3 * 3, aVtxCoords,
+               GL_STATIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(0);
 
   // vbo for texture
-  glGenBuffers(1, &vboTextureCoords);
-  glBindBuffer(GL_ARRAY_BUFFER, vboTextureCoords);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * faceNumber * 3 * 2,
-               texture_coords, GL_STATIC_DRAW);
+  glGenBuffers(1, &vboUvs);
+  glBindBuffer(GL_ARRAY_BUFFER, vboUvs);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * nOfFaces * 3 * 2, aUvs,
+               GL_STATIC_DRAW);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(1);
 
   // vbo for normal
-  glGenBuffers(1, &vboNormalCoords);
-  glBindBuffer(GL_ARRAY_BUFFER, vboNormalCoords);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * faceNumber * 3 * 3,
-               normal_coords, GL_STATIC_DRAW);
+  glGenBuffers(1, &vboNormals);
+  glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * nOfFaces * 3 * 3, aNormals,
+               GL_STATIC_DRAW);
   glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(2);
 
   // texture
-  // FIBITMAP* textureImage = FreeImage_Load(FIF_PNG, "ground.png");
-  FIBITMAP *textureImage =
+  FIBITMAP *texImage =
       FreeImage_ConvertTo24Bits(FreeImage_Load(FIF_JPEG, "rock_basecolor.jpg"));
 
-  GLuint activeTex = 10;
+  GLuint texUnit = 10;
 
-  glGenTextures(1, &textureObject);
-  glBindTexture(GL_TEXTURE_2D, textureObject);
-  glActiveTexture(GL_TEXTURE0 + activeTex);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(textureImage),
-               FreeImage_GetHeight(textureImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
-               (void *)FreeImage_GetBits(textureImage));
+  glGenTextures(1, &texObj);
+  glBindTexture(GL_TEXTURE_2D, texObj);
+  glActiveTexture(GL_TEXTURE0 + texUnit);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texImage),
+               FreeImage_GetHeight(texImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
+               (void *)FreeImage_GetBits(texImage));
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-  uniform_tex = myGetUniformLocation(program, "tex");
-  glUniform1i(uniform_tex, activeTex);
+  uniform_tex = myGetUniformLocation(exeShader, "tex");
+  glUniform1i(uniform_tex, texUnit);
 
   // transform matrix
-  uniform_M = myGetUniformLocation(program, "M");
-  uniform_V = myGetUniformLocation(program, "V");
-  uniform_P = myGetUniformLocation(program, "P");
+  uniform_M = myGetUniformLocation(exeShader, "M");
+  uniform_V = myGetUniformLocation(exeShader, "V");
+  uniform_P = myGetUniformLocation(exeShader, "P");
 
   // light
-  uniform_lightColor = myGetUniformLocation(program, "lightColor");
+  uniform_lightColor = myGetUniformLocation(exeShader, "lightColor");
   glUniform3fv(uniform_lightColor, 1, value_ptr(lightColor));
 
-  uniform_lightPosition = myGetUniformLocation(program, "lightPosition");
+  uniform_lightPosition = myGetUniformLocation(exeShader, "lightPosition");
   glUniform3fv(uniform_lightPosition, 1, value_ptr(lightPosition));
 
-  uniform_lightPower = myGetUniformLocation(program, "lightPower");
+  uniform_lightPower = myGetUniformLocation(exeShader, "lightPower");
   glUniform1f(uniform_lightPower, lightPower);
 
-  uniform_diffuseColor = myGetUniformLocation(program, "diffuseColor");
+  uniform_diffuseColor = myGetUniformLocation(exeShader, "diffuseColor");
   glUniform3fv(uniform_diffuseColor, 1, value_ptr(materialDiffuseColor));
 
-  uniform_ambientColor = myGetUniformLocation(program, "ambientColor");
+  uniform_ambientColor = myGetUniformLocation(exeShader, "ambientColor");
   glUniform3fv(uniform_ambientColor, 1, value_ptr(materialAmbientColor));
 
-  uniform_specularColor = myGetUniformLocation(program, "specularColor");
+  uniform_specularColor = myGetUniformLocation(exeShader, "specularColor");
   glUniform3fv(uniform_specularColor, 1, value_ptr(materialSpecularColor));
 
-  mat4 model = translate(mat4(1.f), vec3(0.f, 0.f, -4.f));
-  mat4 view = lookAt(vec3(0.f, 1.5f, 0.f), // eye position
-                     vec3(0.f, 0.f, -4.f), // look at
-                     vec3(0.f, 1.f, 0.f)   // up
+  mat4 model = translate(mat4(1.f), vec3(0.f, 0.f, 0.f));
+  mat4 view = lookAt(eyePoint,     // eye position
+                     eyeDirection, // look at
+                     up            // up
   );
 
   mat4 projection =
-      perspective(45.f, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 10.f);
+      perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
 
   glUniformMatrix4fv(uniform_M, 1, GL_FALSE, value_ptr(model));
   glUniformMatrix4fv(uniform_V, 1, GL_FALSE, value_ptr(view));
@@ -238,7 +247,7 @@ int main(int argc, char **argv) {
     glUniformMatrix4fv(uniform_P, 1, GL_FALSE, value_ptr(projection));
 
     // draw 3d model
-    glDrawArrays(GL_TRIANGLES, 0, faceNumber * 3);
+    glDrawArrays(GL_TRIANGLES, 0, nOfFaces * 3);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
@@ -247,9 +256,14 @@ int main(int argc, char **argv) {
     glfwPollEvents();
   }
 
-  delete[] vertex_coords;
-  delete[] texture_coords;
-  delete[] normal_coords;
+  delete[] aVtxCoords;
+  delete[] aNormals;
+
+  glDeleteBuffers(1, &vboVtxCoords);
+  glDeleteBuffers(1, &vboUvs);
+  glDeleteBuffers(1, &vboNormals);
+  glDeleteTextures(1, &texObj);
+  glDeleteVertexArrays(1, &vao);
 
   glfwTerminate();
   FreeImage_DeInitialise();
@@ -309,7 +323,7 @@ void computeMatricesFromInputs(mat4 &newProject, mat4 &newView) {
 
   // float FoV = initialFoV;
   newProject =
-      perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.0f);
+      perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
   // Camera matrix
   newView = lookAt(eyePoint, eyePoint + direction, newUp);
 
@@ -334,7 +348,7 @@ void keyCallback(GLFWwindow *keyWnd, int key, int scancode, int action,
       break;
     }
     case GLFW_KEY_I: {
-      std::cout << "eyePoint: " << glm::to_string(eyePoint) << '\n';
+      std::cout << "eyePoint: " << to_string(eyePoint) << '\n';
       std::cout << "verticleAngle: " << fmod(verticalAngle, 6.28f) << ", "
                 << "horizontalAngle: " << fmod(horizontalAngle, 6.28f) << endl;
       break;

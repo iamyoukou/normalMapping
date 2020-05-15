@@ -24,6 +24,7 @@ vec3 eyeDirection =
          sin(verticalAngle) * sin(horizontalAngle));
 vec3 up = vec3(0.f, 1.f, 0.f);
 
+GLuint exeShader;
 GLuint vboVtxCoords, vboUvs, vboNormals;
 GLuint vao;
 GLuint tboBase, tboNormal;
@@ -36,57 +37,17 @@ GLint uniTexBase, uniTexNormal;
 void computeMatricesFromInputs(mat4 &, mat4 &);
 void keyCallback(GLFWwindow *, int, int, int, int);
 
+void initGL();
+void initOthers();
+void initMatrices();
+void initLight();
+
 int main(int argc, char **argv) {
-  // Initialise GLFW
-  if (!glfwInit()) {
-    fprintf(stderr, "Failed to initialize GLFW\n");
-    getchar();
-    return -1;
-  }
-
-  // without setting GLFW_CONTEXT_VERSION_MAJOR and _MINOR，
-  // OpenGL 1.x will be used
-  glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-
-  // must be used if OpenGL version >= 3.0
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-  // Open a window and create its OpenGL context
-  window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "With normal mapping",
-                            NULL, NULL);
-
-  if (window == NULL) {
-    std::cout << "Failed to open GLFW window." << std::endl;
-    glfwTerminate();
-    return -1;
-  }
-
-  glfwMakeContextCurrent(window);
-  glfwSetKeyCallback(window, keyCallback);
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-  /* Initialize GLEW */
-  // without this, glGenVertexArrays will report ERROR!
-  glewExperimental = GL_TRUE;
-
-  if (glewInit() != GLEW_OK) {
-    fprintf(stderr, "Failed to initialize GLEW\n");
-    getchar();
-    glfwTerminate();
-    return -1;
-  }
-
-  glEnable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST); // must enable depth test!!
-
-  FreeImage_Initialise(true);
+  initGL();
+  initOthers();
 
   // build shader program
-  GLuint exeShader = buildShader("vertex_shader.glsl", "fragment_shader.glsl");
-
+  exeShader = buildShader("vertex_shader.glsl", "fragment_shader.glsl");
   glUseProgram(exeShader);
 
   // load mesh
@@ -215,44 +176,8 @@ int main(int argc, char **argv) {
   uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
   glUniform1i(uniTexNormal, texUnitNormal);
 
-  // transform matrix
-  uniM = myGetUniformLocation(exeShader, "M");
-  uniV = myGetUniformLocation(exeShader, "V");
-  uniP = myGetUniformLocation(exeShader, "P");
-
-  // light
-  uniLightColor = myGetUniformLocation(exeShader, "lightColor");
-  glUniform3fv(uniLightColor, 1, value_ptr(lightColor));
-
-  uniLightPosition = myGetUniformLocation(exeShader, "lightPosition");
-  glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
-
-  uniLightPower = myGetUniformLocation(exeShader, "lightPower");
-  glUniform1f(uniLightPower, lightPower);
-
-  uniDiffuse = myGetUniformLocation(exeShader, "diffuseColor");
-  glUniform3fv(uniDiffuse, 1, value_ptr(materialDiffuseColor));
-
-  uniAmbient = myGetUniformLocation(exeShader, "ambientColor");
-  glUniform3fv(uniAmbient, 1, value_ptr(materialAmbientColor));
-
-  uniSpecular = myGetUniformLocation(exeShader, "specularColor");
-  glUniform3fv(uniSpecular, 1, value_ptr(materialSpecularColor));
-
-  mat4 model = translate(mat4(1.f), vec3(0.f, 0.f, 0.f));
-  mat4 view = lookAt(eyePoint,     // eye position
-                     eyeDirection, // look at
-                     up            // up
-  );
-
-  mat4 projection =
-      perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
-
-  glUniformMatrix4fv(uniM, 1, GL_FALSE, value_ptr(model));
-  glUniformMatrix4fv(uniV, 1, GL_FALSE, value_ptr(view));
-  glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
-
-  GLuint frameNumber = 0;
+  initMatrices();
+  initLight();
 
   // a rough way to solve cursor position initialization problem
   // must call glfwPollEvents once to activate glfwSetCursorPos
@@ -279,8 +204,6 @@ int main(int argc, char **argv) {
 
     /* Poll for and process events */
     glfwPollEvents();
-
-    frameNumber++;
   }
 
   delete[] aVtxCoords;
@@ -387,4 +310,92 @@ void keyCallback(GLFWwindow *keyWnd, int key, int scancode, int action,
       break;
     }
   }
+}
+
+void initGL() { // Initialise GLFW
+  if (!glfwInit()) {
+    fprintf(stderr, "Failed to initialize GLFW\n");
+    getchar();
+    exit(EXIT_FAILURE);
+  }
+
+  // without setting GLFW_CONTEXT_VERSION_MAJOR and _MINOR，
+  // OpenGL 1.x will be used
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+
+  // must be used if OpenGL version >= 3.0
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  // Open a window and create its OpenGL context
+  window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "With normal mapping",
+                            NULL, NULL);
+
+  if (window == NULL) {
+    std::cout << "Failed to open GLFW window." << std::endl;
+    glfwTerminate();
+    exit(EXIT_FAILURE);
+  }
+
+  glfwMakeContextCurrent(window);
+  glfwSetKeyCallback(window, keyCallback);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+  /* Initialize GLEW */
+  // without this, glGenVertexArrays will report ERROR!
+  glewExperimental = GL_TRUE;
+
+  if (glewInit() != GLEW_OK) {
+    fprintf(stderr, "Failed to initialize GLEW\n");
+    getchar();
+    glfwTerminate();
+    exit(EXIT_FAILURE);
+  }
+
+  glEnable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST); // must enable depth test!!
+}
+
+void initOthers() { FreeImage_Initialise(true); }
+
+void initMatrices() {
+  // transform matrix
+  uniM = myGetUniformLocation(exeShader, "M");
+  uniV = myGetUniformLocation(exeShader, "V");
+  uniP = myGetUniformLocation(exeShader, "P");
+
+  model = translate(mat4(1.f), vec3(0.f, 0.f, 0.f));
+  view = lookAt(eyePoint,     // eye position
+                eyeDirection, // look at
+                up            // up
+  );
+
+  projection =
+      perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
+
+  glUniformMatrix4fv(uniM, 1, GL_FALSE, value_ptr(model));
+  glUniformMatrix4fv(uniV, 1, GL_FALSE, value_ptr(view));
+  glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
+}
+
+void initLight() { // light
+  uniLightColor = myGetUniformLocation(exeShader, "lightColor");
+  glUniform3fv(uniLightColor, 1, value_ptr(lightColor));
+
+  uniLightPosition = myGetUniformLocation(exeShader, "lightPosition");
+  glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
+
+  uniLightPower = myGetUniformLocation(exeShader, "lightPower");
+  glUniform1f(uniLightPower, lightPower);
+
+  uniDiffuse = myGetUniformLocation(exeShader, "diffuseColor");
+  glUniform3fv(uniDiffuse, 1, value_ptr(materialDiffuseColor));
+
+  uniAmbient = myGetUniformLocation(exeShader, "ambientColor");
+  glUniform3fv(uniAmbient, 1, value_ptr(materialAmbientColor));
+
+  uniSpecular = myGetUniformLocation(exeShader, "specularColor");
+  glUniform3fv(uniSpecular, 1, value_ptr(materialSpecularColor));
 }

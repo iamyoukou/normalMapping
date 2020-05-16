@@ -42,15 +42,14 @@ void initOthers();
 void initMatrices();
 void initLight();
 void initTexture();
+void initShader();
+void initMesh();
 GLuint createTexture(GLuint, GLuint, string, string, FREE_IMAGE_FORMAT);
 
 int main(int argc, char **argv) {
   initGL();
   initOthers();
-
-  // build shader program
-  exeShader = buildShader("vertex_shader.glsl", "fragment_shader.glsl");
-  glUseProgram(exeShader);
+  initShader();
 
   // load mesh
   Mesh mesh = loadObj("cube.obj");
@@ -391,6 +390,12 @@ void initLight() { // light
 
   uniSpecular = myGetUniformLocation(exeShader, "specularColor");
   glUniform3fv(uniSpecular, 1, value_ptr(materialSpecularColor));
+}
+
+void initShader() {
+  // build shader program
+  exeShader = buildShader("vertex_shader.glsl", "fragment_shader.glsl");
+  glUseProgram(exeShader);
 }
 
 void initTexture() { // base texture

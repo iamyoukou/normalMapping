@@ -11,14 +11,14 @@ vec3 materialDiffuseColor = vec3(0.1f, 0.1f, 0.1f);
 vec3 materialAmbientColor = vec3(0.1f, 0.1f, 0.1f);
 vec3 materialSpecularColor = vec3(1.f, 1.f, 1.f);
 
-float verticalAngle = -1.51191;
-float horizontalAngle = -0.0948035;
+float verticalAngle = -3.13683;
+float horizontalAngle = -0.00078001;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
 
 mat4 model, view, projection;
-vec3 eyePoint = vec3(2.088317, -0.040358, -0.151899);
+vec3 eyePoint = vec3(-0.063827, 2.560569, -0.024950);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));
@@ -53,8 +53,11 @@ int main(int argc, char **argv) {
   initShader();
 
   // prepare mesh data
-  Mesh mesh = loadObj("cube.obj");
-  initMesh(mesh);
+  // Mesh cube = loadObj("cube.obj");
+  // initMesh(cube);
+
+  Mesh grid = loadObj("grid.obj");
+  initMesh(grid);
 
   initTexture();
   initMatrices();
@@ -78,7 +81,11 @@ int main(int argc, char **argv) {
     glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
 
     // draw 3d model
-    glDrawArrays(GL_TRIANGLES, 0, mesh.faces.size() * 3);
+    // glBindVertexArray(cube.vao);
+    // glDrawArrays(GL_TRIANGLES, 0, cube.faces.size() * 3);
+
+    glBindVertexArray(grid.vao);
+    glDrawArrays(GL_TRIANGLES, 0, grid.faces.size() * 3);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);

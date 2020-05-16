@@ -28,10 +28,15 @@ typedef struct {
 
 class Mesh {
 public:
+  // mesh data
   std::vector<glm::vec3> vertices;
   std::vector<glm::vec2> uvs;
   std::vector<glm::vec3> faceNormals;
   std::vector<Face> faces;
+
+  // opengl data
+  GLuint vboVtxs, vboUvs, vboNormals;
+  GLuint vao;
 
   /* Constructors */
   Mesh(){};
@@ -50,3 +55,4 @@ GLint myGetUniformLocation(GLuint &, string);
 GLuint buildShader(string, string);
 GLuint compileShader(string, GLenum);
 GLuint linkShader(GLuint, GLuint);
+void initMesh(Mesh &);

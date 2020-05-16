@@ -227,3 +227,99 @@ void Mesh::scale(glm::vec3 xyz) {
   //
   // }
 }
+
+void initMesh(Mesh &mesh) {
+  // write vertex coordinate to array
+  int nOfFaces = mesh.faces.size();
+
+  // 3 vertices per face, 3 float per vertex coord, 2 float per tex coord
+  GLfloat *aVtxCoords = new GLfloat[nOfFaces * 3 * 3];
+  GLfloat *aUvs = new GLfloat[nOfFaces * 3 * 2];
+  GLfloat *aNormals = new GLfloat[nOfFaces * 3 * 3];
+
+  for (size_t i = 0; i < nOfFaces; i++) {
+    // vertex 1
+    int vtxIdx = mesh.faces[i].v1;
+    aVtxCoords[i * 9 + 0] = mesh.vertices[vtxIdx].x;
+    aVtxCoords[i * 9 + 1] = mesh.vertices[vtxIdx].y;
+    aVtxCoords[i * 9 + 2] = mesh.vertices[vtxIdx].z;
+
+    // normal for vertex 1
+    int nmlIdx = mesh.faces[i].vn1;
+    aNormals[i * 9 + 0] = mesh.faceNormals[nmlIdx].x;
+    aNormals[i * 9 + 1] = mesh.faceNormals[nmlIdx].y;
+    aNormals[i * 9 + 2] = mesh.faceNormals[nmlIdx].z;
+
+    // uv for vertex 1
+    int uvIdx = mesh.faces[i].vt1;
+    aUvs[i * 6 + 0] = mesh.uvs[uvIdx].x;
+    aUvs[i * 6 + 1] = mesh.uvs[uvIdx].y;
+
+    // vertex 2
+    vtxIdx = mesh.faces[i].v2;
+    aVtxCoords[i * 9 + 3] = mesh.vertices[vtxIdx].x;
+    aVtxCoords[i * 9 + 4] = mesh.vertices[vtxIdx].y;
+    aVtxCoords[i * 9 + 5] = mesh.vertices[vtxIdx].z;
+
+    // normal for vertex 2
+    nmlIdx = mesh.faces[i].vn2;
+    aNormals[i * 9 + 3] = mesh.faceNormals[nmlIdx].x;
+    aNormals[i * 9 + 4] = mesh.faceNormals[nmlIdx].y;
+    aNormals[i * 9 + 5] = mesh.faceNormals[nmlIdx].z;
+
+    // uv for vertex 2
+    uvIdx = mesh.faces[i].vt2;
+    aUvs[i * 6 + 2] = mesh.uvs[uvIdx].x;
+    aUvs[i * 6 + 3] = mesh.uvs[uvIdx].y;
+
+    // vertex 3
+    vtxIdx = mesh.faces[i].v3;
+    aVtxCoords[i * 9 + 6] = mesh.vertices[vtxIdx].x;
+    aVtxCoords[i * 9 + 7] = mesh.vertices[vtxIdx].y;
+    aVtxCoords[i * 9 + 8] = mesh.vertices[vtxIdx].z;
+
+    // normal for vertex 3
+    nmlIdx = mesh.faces[i].vn3;
+    aNormals[i * 9 + 6] = mesh.faceNormals[nmlIdx].x;
+    aNormals[i * 9 + 7] = mesh.faceNormals[nmlIdx].y;
+    aNormals[i * 9 + 8] = mesh.faceNormals[nmlIdx].z;
+
+    // uv for vertex 3
+    uvIdx = mesh.faces[i].vt3;
+    aUvs[i * 6 + 4] = mesh.uvs[uvIdx].x;
+    aUvs[i * 6 + 5] = mesh.uvs[uvIdx].y;
+  }
+
+  // vao
+  glGenVertexArrays(1, &mesh.vao);
+  glBindVertexArray(mesh.vao);
+
+  // vbo for vertex
+  glGenBuffers(1, &mesh.vboVtxs);
+  glBindBuffer(GL_ARRAY_BUFFER, mesh.vboVtxs);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * nOfFaces * 3 * 3, aVtxCoords,
+               GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(0);
+
+  // vbo for texture
+  glGenBuffers(1, &mesh.vboUvs);
+  glBindBuffer(GL_ARRAY_BUFFER, mesh.vboUvs);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * nOfFaces * 3 * 2, aUvs,
+               GL_STATIC_DRAW);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(1);
+
+  // vbo for normal
+  glGenBuffers(1, &mesh.vboNormals);
+  glBindBuffer(GL_ARRAY_BUFFER, mesh.vboNormals);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * nOfFaces * 3 * 3, aNormals,
+               GL_STATIC_DRAW);
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(2);
+
+  // delete client data
+  delete[] aVtxCoords;
+  delete[] aUvs;
+  delete[] aNormals;
+}

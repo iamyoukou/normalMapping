@@ -44,6 +44,7 @@ void initLight();
 void initTexture();
 void initShader();
 void initMesh();
+void releaseResource();
 GLuint createTexture(GLuint, GLuint, string, string, FREE_IMAGE_FORMAT);
 
 int main(int argc, char **argv) {
@@ -51,97 +52,9 @@ int main(int argc, char **argv) {
   initOthers();
   initShader();
 
-  // load mesh
+  // prepare mesh data
   Mesh mesh = loadObj("cube.obj");
-
-  // write vertex coordinate to array
-  int nOfFaces = mesh.faces.size();
-
-  // 3 vertices per face, 3 float per vertex coord, 2 float per tex coord
-  GLfloat *aVtxCoords = new GLfloat[nOfFaces * 3 * 3];
-  GLfloat *aUvs = new GLfloat[nOfFaces * 3 * 2];
-  GLfloat *aNormals = new GLfloat[nOfFaces * 3 * 3];
-
-  for (size_t i = 0; i < nOfFaces; i++) {
-    // vertex 1
-    int vtxIdx = mesh.faces[i].v1;
-    aVtxCoords[i * 9 + 0] = mesh.vertices[vtxIdx].x;
-    aVtxCoords[i * 9 + 1] = mesh.vertices[vtxIdx].y;
-    aVtxCoords[i * 9 + 2] = mesh.vertices[vtxIdx].z;
-
-    // normal for vertex 1
-    int nmlIdx = mesh.faces[i].vn1;
-    aNormals[i * 9 + 0] = mesh.faceNormals[nmlIdx].x;
-    aNormals[i * 9 + 1] = mesh.faceNormals[nmlIdx].y;
-    aNormals[i * 9 + 2] = mesh.faceNormals[nmlIdx].z;
-
-    // uv for vertex 1
-    int uvIdx = mesh.faces[i].vt1;
-    aUvs[i * 6 + 0] = mesh.uvs[uvIdx].x;
-    aUvs[i * 6 + 1] = mesh.uvs[uvIdx].y;
-
-    // vertex 2
-    vtxIdx = mesh.faces[i].v2;
-    aVtxCoords[i * 9 + 3] = mesh.vertices[vtxIdx].x;
-    aVtxCoords[i * 9 + 4] = mesh.vertices[vtxIdx].y;
-    aVtxCoords[i * 9 + 5] = mesh.vertices[vtxIdx].z;
-
-    // normal for vertex 2
-    nmlIdx = mesh.faces[i].vn2;
-    aNormals[i * 9 + 3] = mesh.faceNormals[nmlIdx].x;
-    aNormals[i * 9 + 4] = mesh.faceNormals[nmlIdx].y;
-    aNormals[i * 9 + 5] = mesh.faceNormals[nmlIdx].z;
-
-    // uv for vertex 2
-    uvIdx = mesh.faces[i].vt2;
-    aUvs[i * 6 + 2] = mesh.uvs[uvIdx].x;
-    aUvs[i * 6 + 3] = mesh.uvs[uvIdx].y;
-
-    // vertex 3
-    vtxIdx = mesh.faces[i].v3;
-    aVtxCoords[i * 9 + 6] = mesh.vertices[vtxIdx].x;
-    aVtxCoords[i * 9 + 7] = mesh.vertices[vtxIdx].y;
-    aVtxCoords[i * 9 + 8] = mesh.vertices[vtxIdx].z;
-
-    // normal for vertex 3
-    nmlIdx = mesh.faces[i].vn3;
-    aNormals[i * 9 + 6] = mesh.faceNormals[nmlIdx].x;
-    aNormals[i * 9 + 7] = mesh.faceNormals[nmlIdx].y;
-    aNormals[i * 9 + 8] = mesh.faceNormals[nmlIdx].z;
-
-    // uv for vertex 3
-    uvIdx = mesh.faces[i].vt3;
-    aUvs[i * 6 + 4] = mesh.uvs[uvIdx].x;
-    aUvs[i * 6 + 5] = mesh.uvs[uvIdx].y;
-  }
-
-  // vao
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  // vbo for vertex
-  glGenBuffers(1, &vboVtxCoords);
-  glBindBuffer(GL_ARRAY_BUFFER, vboVtxCoords);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * nOfFaces * 3 * 3, aVtxCoords,
-               GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(0);
-
-  // vbo for texture
-  glGenBuffers(1, &vboUvs);
-  glBindBuffer(GL_ARRAY_BUFFER, vboUvs);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * nOfFaces * 3 * 2, aUvs,
-               GL_STATIC_DRAW);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(1);
-
-  // vbo for normal
-  glGenBuffers(1, &vboNormals);
-  glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * nOfFaces * 3 * 3, aNormals,
-               GL_STATIC_DRAW);
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(2);
+  initMesh(mesh);
 
   initTexture();
   initMatrices();
@@ -165,7 +78,7 @@ int main(int argc, char **argv) {
     glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
 
     // draw 3d model
-    glDrawArrays(GL_TRIANGLES, 0, nOfFaces * 3);
+    glDrawArrays(GL_TRIANGLES, 0, mesh.faces.size() * 3);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
@@ -174,18 +87,7 @@ int main(int argc, char **argv) {
     glfwPollEvents();
   }
 
-  delete[] aVtxCoords;
-  delete[] aUvs;
-  delete[] aNormals;
-
-  glDeleteBuffers(1, &vboVtxCoords);
-  glDeleteBuffers(1, &vboUvs);
-  glDeleteBuffers(1, &vboNormals);
-  glDeleteTextures(1, &tboBase);
-  glDeleteVertexArrays(1, &vao);
-
-  glfwTerminate();
-  FreeImage_DeInitialise();
+  releaseResource();
 
   return EXIT_SUCCESS;
 }
@@ -232,8 +134,8 @@ void computeMatricesFromInputs(mat4 &newProject, mat4 &newView) {
   glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 
   // Compute new orientation
-  //因为事先一步固定光标在屏幕中心
-  //所以 WINDOW_WIDTH/2.f - xpos 和 WINDOW_HEIGHT/2.f - ypos 成了移动量
+  // The cursor is set to the center of the screen last frame,
+  // so (currentCursorPos - center) is the offset of this frame
   horizontalAngle += mouseSpeed * float(xpos - WINDOW_WIDTH / 2.f);
   verticalAngle += mouseSpeed * float(-ypos + WINDOW_HEIGHT / 2.f);
 
@@ -405,4 +307,15 @@ void initTexture() { // base texture
   // normal texture
   tboNormal =
       createTexture(11, exeShader, "texNormal", "rock_normal.jpg", FIF_JPEG);
+}
+
+void releaseResource() {
+  glDeleteBuffers(1, &vboVtxCoords);
+  glDeleteBuffers(1, &vboUvs);
+  glDeleteBuffers(1, &vboNormals);
+  glDeleteTextures(1, &tboBase);
+  glDeleteVertexArrays(1, &vao);
+
+  glfwTerminate();
+  FreeImage_DeInitialise();
 }

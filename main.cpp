@@ -33,6 +33,7 @@ GLint uniLightColor, uniLightPosition, uniLightPower;
 // material diffuse, ambient, specular color
 GLint uniDiffuse, uniAmbient, uniSpecular;
 GLint uniTexBase, uniTexNormal;
+GLint uniEyePoint;
 
 void computeMatricesFromInputs(mat4 &, mat4 &);
 void keyCallback(GLFWwindow *, int, int, int, int);
@@ -79,6 +80,7 @@ int main(int argc, char **argv) {
     computeMatricesFromInputs(projection, view);
     glUniformMatrix4fv(uniV, 1, GL_FALSE, value_ptr(view));
     glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
+    glUniform3fv(uniEyePoint, 1, value_ptr(eyePoint));
 
     // draw 3d model
     // glBindVertexArray(cube.vao);
@@ -279,6 +281,9 @@ void initMatrices() {
   glUniformMatrix4fv(uniM, 1, GL_FALSE, value_ptr(model));
   glUniformMatrix4fv(uniV, 1, GL_FALSE, value_ptr(view));
   glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
+
+  uniEyePoint = myGetUniformLocation(exeShader, "eyePoint");
+  glUniform3fv(uniEyePoint, 1, value_ptr(eyePoint));
 }
 
 void initLight() { // light
@@ -288,17 +293,17 @@ void initLight() { // light
   uniLightPosition = myGetUniformLocation(exeShader, "lightPosition");
   glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
 
-  uniLightPower = myGetUniformLocation(exeShader, "lightPower");
-  glUniform1f(uniLightPower, lightPower);
+  // uniLightPower = myGetUniformLocation(exeShader, "lightPower");
+  // glUniform1f(uniLightPower, lightPower);
 
-  uniDiffuse = myGetUniformLocation(exeShader, "diffuseColor");
-  glUniform3fv(uniDiffuse, 1, value_ptr(materialDiffuseColor));
-
-  uniAmbient = myGetUniformLocation(exeShader, "ambientColor");
-  glUniform3fv(uniAmbient, 1, value_ptr(materialAmbientColor));
-
-  uniSpecular = myGetUniformLocation(exeShader, "specularColor");
-  glUniform3fv(uniSpecular, 1, value_ptr(materialSpecularColor));
+  // uniDiffuse = myGetUniformLocation(exeShader, "diffuseColor");
+  // glUniform3fv(uniDiffuse, 1, value_ptr(materialDiffuseColor));
+  //
+  // uniAmbient = myGetUniformLocation(exeShader, "ambientColor");
+  // glUniform3fv(uniAmbient, 1, value_ptr(materialAmbientColor));
+  //
+  // uniSpecular = myGetUniformLocation(exeShader, "specularColor");
+  // glUniform3fv(uniSpecular, 1, value_ptr(materialSpecularColor));
 }
 
 void initShader() {

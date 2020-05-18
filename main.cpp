@@ -308,7 +308,7 @@ void initLight() { // light
 
 void initShader() {
   // build shader program
-  exeShader = buildShader("vertex_shader.glsl", "fragment_shader.glsl");
+  exeShader = buildShader("vsPhong.glsl", "fsPhong.glsl");
   glUseProgram(exeShader);
 }
 

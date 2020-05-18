@@ -1,6 +1,5 @@
 #version 330
 
-in vec3 fragmentColor;
 in vec2 uv;
 in vec3 lightDir;
 in vec3 viewDir;

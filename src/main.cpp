@@ -11,14 +11,14 @@ vec3 materialDiffuseColor = vec3(0.1f, 0.1f, 0.1f);
 vec3 materialAmbientColor = vec3(0.1f, 0.1f, 0.1f);
 vec3 materialSpecularColor = vec3(1.f, 1.f, 1.f);
 
-float verticalAngle = -3.13683;
-float horizontalAngle = -0.00078001;
+float verticalAngle = -2.76603;
+float horizontalAngle = 1.56834;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
 
 mat4 model, view, projection;
-vec3 eyePoint = vec3(-0.063827, 2.560569, -0.024950);
+vec3 eyePoint = vec3(0.106493, 3.517007, 1.688342);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
   // Mesh cube = loadObj("cube.obj");
   // initMesh(cube);
 
-  Mesh grid = loadObj("grid.obj");
+  Mesh grid = loadObj("./mesh/grid.obj");
   initMesh(grid);
 
   initTexture();
@@ -308,17 +308,17 @@ void initLight() { // light
 
 void initShader() {
   // build shader program
-  exeShader = buildShader("vsPhong.glsl", "fsPhong.glsl");
+  exeShader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl");
   glUseProgram(exeShader);
 }
 
 void initTexture() { // base texture
-  tboBase =
-      createTexture(10, exeShader, "texBase", "rock_basecolor.jpg", FIF_JPEG);
+  tboBase = createTexture(10, exeShader, "texBase", "./res/rock_basecolor.jpg",
+                          FIF_JPEG);
 
   // normal texture
-  tboNormal =
-      createTexture(11, exeShader, "texNormal", "rock_normal.jpg", FIF_JPEG);
+  tboNormal = createTexture(11, exeShader, "texNormal", "./res/rock_normal.jpg",
+                            FIF_JPEG);
 }
 
 void releaseResource() {

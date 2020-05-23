@@ -7,10 +7,7 @@ vec3 lightPosition = vec3(3.f, 3.f, 3.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
 float lightPower = 1.f;
 
-vec3 materialDiffuseColor = vec3(0.1f, 0.1f, 0.1f);
-vec3 materialAmbientColor = vec3(0.1f, 0.1f, 0.1f);
-vec3 materialSpecularColor = vec3(1.f, 1.f, 1.f);
-
+/* for view control */
 float verticalAngle = -2.76603;
 float horizontalAngle = 1.56834;
 float initialFoV = 45.0f;
@@ -24,15 +21,12 @@ vec3 eyeDirection =
          sin(verticalAngle) * sin(horizontalAngle));
 vec3 up = vec3(0.f, 1.f, 0.f);
 
+/* opengl variables */
 GLuint exeShader;
-GLuint vboVtxCoords, vboUvs, vboNormals;
-GLuint vao;
 GLuint tboBase, tboNormal;
 GLint uniM, uniV, uniP, uniMvp;
 GLint uniLightColor, uniLightPosition, uniLightPower;
-// material diffuse, ambient, specular color
-GLint uniDiffuse, uniAmbient, uniSpecular;
-GLint uniTexBase, uniTexNormal;
+GLint uniTexBase;
 GLint uniEyePoint;
 
 void computeMatricesFromInputs(mat4 &, mat4 &);
@@ -40,11 +34,10 @@ void keyCallback(GLFWwindow *, int, int, int, int);
 
 void initGL();
 void initOthers();
-void initMatrices();
+void initMatrix();
 void initLight();
 void initTexture();
 void initShader();
-void initMesh();
 void releaseResource();
 GLuint createTexture(GLuint, GLuint, string, string, FREE_IMAGE_FORMAT);
 
@@ -64,12 +57,12 @@ int main(int argc, char **argv) {
   initMesh(sphere);
   findAABB(sphere);
 
-  sphere.translate(vec3(2, 2, 2));
-  sphere.scale(vec3(2, 2, 2));
-  updateMesh(sphere);
+  // sphere.translate(vec3(2, 2, 2));
+  // sphere.scale(vec3(2, 2, 2));
+  // updateMesh(sphere);
 
   initTexture();
-  initMatrices();
+  initMatrix();
   initLight();
 
   // a rough way to solve cursor position initialization problem
@@ -275,7 +268,7 @@ void initGL() { // Initialise GLFW
 
 void initOthers() { FreeImage_Initialise(true); }
 
-void initMatrices() {
+void initMatrix() {
   // transform matrix
   uniM = myGetUniformLocation(exeShader, "M");
   uniV = myGetUniformLocation(exeShader, "V");
@@ -307,15 +300,6 @@ void initLight() { // light
 
   // uniLightPower = myGetUniformLocation(exeShader, "lightPower");
   // glUniform1f(uniLightPower, lightPower);
-
-  // uniDiffuse = myGetUniformLocation(exeShader, "diffuseColor");
-  // glUniform3fv(uniDiffuse, 1, value_ptr(materialDiffuseColor));
-  //
-  // uniAmbient = myGetUniformLocation(exeShader, "ambientColor");
-  // glUniform3fv(uniAmbient, 1, value_ptr(materialAmbientColor));
-  //
-  // uniSpecular = myGetUniformLocation(exeShader, "specularColor");
-  // glUniform3fv(uniSpecular, 1, value_ptr(materialSpecularColor));
 }
 
 void initShader() {
@@ -334,11 +318,7 @@ void initTexture() { // base texture
 }
 
 void releaseResource() {
-  glDeleteBuffers(1, &vboVtxCoords);
-  glDeleteBuffers(1, &vboUvs);
-  glDeleteBuffers(1, &vboNormals);
   glDeleteTextures(1, &tboBase);
-  glDeleteVertexArrays(1, &vao);
 
   glfwTerminate();
   FreeImage_DeInitialise();

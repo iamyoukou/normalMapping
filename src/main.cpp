@@ -45,6 +45,9 @@ int main(int argc, char **argv) {
   initGL();
   initOthers();
   initShader();
+  initTexture();
+  initMatrix();
+  initLight();
 
   // prepare mesh data
   // Mesh cube = loadObj("cube.obj");
@@ -60,10 +63,6 @@ int main(int argc, char **argv) {
   // sphere.translate(vec3(2, 2, 2));
   // sphere.scale(vec3(2, 2, 2));
   // updateMesh(sphere);
-
-  initTexture();
-  initMatrix();
-  initLight();
 
   // a rough way to solve cursor position initialization problem
   // must call glfwPollEvents once to activate glfwSetCursorPos

@@ -43,7 +43,12 @@ public:
 
   /* Constructors */
   Mesh(){};
-  ~Mesh(){};
+  ~Mesh() {
+    glDeleteBuffers(1, &vboVtxs);
+    glDeleteBuffers(1, &vboUvs);
+    glDeleteBuffers(1, &vboNormals);
+    glDeleteVertexArrays(1, &vao);
+  };
 
   /* Member functions */
   void translate(glm::vec3);

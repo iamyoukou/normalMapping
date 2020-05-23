@@ -64,6 +64,10 @@ int main(int argc, char **argv) {
   initMesh(sphere);
   findAABB(sphere);
 
+  sphere.translate(vec3(2, 2, 2));
+  sphere.scale(vec3(2, 2, 2));
+  updateMesh(sphere);
+
   initTexture();
   initMatrices();
   initLight();

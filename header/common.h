@@ -38,6 +38,9 @@ public:
   GLuint vboVtxs, vboUvs, vboNormals;
   GLuint vao;
 
+  // aabb
+  vec3 min, max;
+
   /* Constructors */
   Mesh(){};
   ~Mesh(){};
@@ -56,3 +59,5 @@ GLuint buildShader(string, string);
 GLuint compileShader(string, GLenum);
 GLuint linkShader(GLuint, GLuint);
 void initMesh(Mesh &);
+void findAABB(Mesh &);
+void drawBox(vec3, vec3);

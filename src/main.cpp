@@ -53,12 +53,12 @@ int main(int argc, char **argv) {
   // Mesh cube = loadObj("cube.obj");
   // initMesh(cube);
 
-  // Mesh grid = loadObj("./mesh/grid.obj");
-  // initMesh(grid);
+  Mesh grid = loadObj("./mesh/grid.obj");
+  initMesh(grid);
 
-  Mesh sphere = loadObj("./mesh/sphere.obj");
-  initMesh(sphere);
-  findAABB(sphere);
+  // Mesh sphere = loadObj("./mesh/sphere.obj");
+  // initMesh(sphere);
+  // findAABB(sphere);
 
   // sphere.translate(vec3(2, 2, 2));
   // sphere.scale(vec3(2, 2, 2));
@@ -86,12 +86,12 @@ int main(int argc, char **argv) {
     // glBindVertexArray(cube.vao);
     // glDrawArrays(GL_TRIANGLES, 0, cube.faces.size() * 3);
 
-    // glBindVertexArray(grid.vao);
-    // glDrawArrays(GL_TRIANGLES, 0, grid.faces.size() * 3);
+    glBindVertexArray(grid.vao);
+    glDrawArrays(GL_TRIANGLES, 0, grid.faces.size() * 3);
 
-    glBindVertexArray(sphere.vao);
-    glDrawArrays(GL_TRIANGLES, 0, sphere.faces.size() * 3);
-    drawBox(sphere.min, sphere.max);
+    // glBindVertexArray(sphere.vao);
+    // glDrawArrays(GL_TRIANGLES, 0, sphere.faces.size() * 3);
+    // drawBox(sphere.min, sphere.max);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);

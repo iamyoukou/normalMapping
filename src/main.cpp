@@ -38,6 +38,7 @@ void initMatrix();
 void initLight();
 void initTexture();
 void initShader();
+void initUniform();
 void releaseResource();
 GLuint createTexture(GLuint, string, FREE_IMAGE_FORMAT);
 
@@ -45,6 +46,7 @@ int main(int argc, char **argv) {
   initGL();
   initOthers();
   initShader();
+  initUniform();
   initTexture();
   initMatrix();
   initLight();
@@ -58,14 +60,6 @@ int main(int argc, char **argv) {
   findAABB(grid2);
   grid2.translate(vec3(5, 0, 0));
   updateMesh(grid2);
-
-  // Mesh sphere = loadObj("./mesh/sphere.obj");
-  // initMesh(sphere);
-  // findAABB(sphere);
-
-  // sphere.translate(vec3(2, 2, 2));
-  // sphere.scale(vec3(2, 2, 2));
-  // updateMesh(sphere);
 
   // a rough way to solve cursor position initialization problem
   // must call glfwPollEvents once to activate glfwSetCursorPos
@@ -139,8 +133,6 @@ void computeMatricesFromInputs(mat4 &newProject, mat4 &newView) {
   // Get mouse position
   double xpos, ypos;
   glfwGetCursorPos(window, &xpos, &ypos);
-
-  // std::cout << xpos << ", " << ypos << '\n';
 
   // Reset mouse position for next frame
   glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
@@ -267,12 +259,8 @@ void initGL() { // Initialise GLFW
 void initOthers() { FreeImage_Initialise(true); }
 
 void initMatrix() {
-  // transform matrix
-  uniM = myGetUniformLocation(exeShader, "M");
-  uniV = myGetUniformLocation(exeShader, "V");
-  uniP = myGetUniformLocation(exeShader, "P");
-
   model = translate(mat4(1.f), vec3(0.f, 0.f, 0.f));
+
   view = lookAt(eyePoint,     // eye position
                 eyeDirection, // look at
                 up            // up
@@ -285,46 +273,43 @@ void initMatrix() {
   glUniformMatrix4fv(uniV, 1, GL_FALSE, value_ptr(view));
   glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
 
-  uniEyePoint = myGetUniformLocation(exeShader, "eyePoint");
   glUniform3fv(uniEyePoint, 1, value_ptr(eyePoint));
 }
-
-void initLight() { // light
-  uniLightColor = myGetUniformLocation(exeShader, "lightColor");
+void initLight() {
   glUniform3fv(uniLightColor, 1, value_ptr(lightColor));
-
-  uniLightPosition = myGetUniformLocation(exeShader, "lightPosition");
   glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
-
-  // uniLightPower = myGetUniformLocation(exeShader, "lightPower");
-  // glUniform1f(uniLightPower, lightPower);
 }
 
 void initShader() {
-  // build shader program
   exeShader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl");
   glUseProgram(exeShader);
 }
 
-void initTexture() { // base texture
+void initTexture() {
+  // base texture
   tboRockBase = createTexture(10, "./res/rock_basecolor.jpg", FIF_JPEG);
   glActiveTexture(GL_TEXTURE0 + 10);
-  uniTexBase = myGetUniformLocation(exeShader, "texBase");
-  glUniform1i(uniTexBase, 10);
 
   // normal texture
   tboRockNormal = createTexture(11, "./res/rock_normal.jpg", FIF_JPEG);
   glActiveTexture(GL_TEXTURE0 + 11);
-  uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
-  glUniform1i(uniTexNormal, 11);
 
   tboPebbleBase = createTexture(12, "./res/stone_basecolor.jpg", FIF_JPEG);
   glActiveTexture(GL_TEXTURE0 + 12);
-  // uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
-  // glUniform1i(uniTexNormal, 12);
 
   tboPebbleNormal = createTexture(13, "./res/stone_normal.jpg", FIF_JPEG);
   glActiveTexture(GL_TEXTURE0 + 13);
+}
+
+void initUniform() {
+  uniTexBase = myGetUniformLocation(exeShader, "texBase");
+  uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
+  uniM = myGetUniformLocation(exeShader, "M");
+  uniV = myGetUniformLocation(exeShader, "V");
+  uniP = myGetUniformLocation(exeShader, "P");
+  uniEyePoint = myGetUniformLocation(exeShader, "eyePoint");
+  uniLightColor = myGetUniformLocation(exeShader, "lightColor");
+  uniLightPosition = myGetUniformLocation(exeShader, "lightPosition");
 }
 
 void releaseResource() {

@@ -23,7 +23,7 @@ vec3 up = vec3(0.f, 1.f, 0.f);
 
 /* opengl variables */
 GLuint exeShader;
-GLuint tboBaseBlue, tboNormal, tboBaseWhite;
+GLuint tboRockBase, tboRockNormal, tboPebbleBase, tboPebbleNormal;
 GLint uniM, uniV, uniP, uniMvp;
 GLint uniLightColor, uniLightPosition, uniLightPower;
 GLint uniTexBase, uniTexNormal;
@@ -86,26 +86,15 @@ int main(int argc, char **argv) {
     glUniform3fv(uniEyePoint, 1, value_ptr(eyePoint));
 
     // draw 3d model
-    // glBindTexture(GL_TEXTURE_2D, tboBaseBlue);
-    // glActiveTexture(GL_TEXTURE0 + 10);
-    // glBindTexture(GL_TEXTURE_2D, tboBaseBlue);
-    // uniTexBase = myGetUniformLocation(exeShader, "texBase");
-    // glUniform1i(uniTexBase, 10);
-
-    // glBindTexture(GL_TEXTURE_2D, tboBaseWhite);
-    // glActiveTexture(GL_TEXTURE0 + 12);
-    // glBindTexture(GL_TEXTURE_2D, tboBaseWhite);
-    // uniTexBase = myGetUniformLocation(exeShader, "texBase");
-    // glUniform1i(uniTexBase, 12);
+    glUniform1i(uniTexBase, 12);   // change base color
+    glUniform1i(uniTexNormal, 13); // change normal
     glBindVertexArray(grid.vao);
     glDrawArrays(GL_TRIANGLES, 0, grid.faces.size() * 3);
 
+    glUniform1i(uniTexBase, 10);   // change base color
+    glUniform1i(uniTexNormal, 11); // change normal
     glBindVertexArray(grid2.vao);
     glDrawArrays(GL_TRIANGLES, 0, grid2.faces.size() * 3);
-
-    // glBindVertexArray(sphere.vao);
-    // glDrawArrays(GL_TRIANGLES, 0, sphere.faces.size() * 3);
-    // drawBox(sphere.min, sphere.max);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
@@ -318,25 +307,31 @@ void initShader() {
 }
 
 void initTexture() { // base texture
-  tboBaseBlue = createTexture(10, "./res/rock_basecolor.jpg", FIF_JPEG);
+  tboRockBase = createTexture(10, "./res/rock_basecolor.jpg", FIF_JPEG);
   glActiveTexture(GL_TEXTURE0 + 10);
   uniTexBase = myGetUniformLocation(exeShader, "texBase");
   glUniform1i(uniTexBase, 10);
 
   // normal texture
-  tboNormal = createTexture(11, "./res/rock_normal.jpg", FIF_JPEG);
+  tboRockNormal = createTexture(11, "./res/rock_normal.jpg", FIF_JPEG);
   glActiveTexture(GL_TEXTURE0 + 11);
   uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
   glUniform1i(uniTexNormal, 11);
 
-  tboBaseWhite = createTexture(12, "./res/stone.png", FIF_PNG);
+  tboPebbleBase = createTexture(12, "./res/stone_basecolor.jpg", FIF_JPEG);
   glActiveTexture(GL_TEXTURE0 + 12);
   // uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
   // glUniform1i(uniTexNormal, 12);
+
+  tboPebbleNormal = createTexture(13, "./res/stone_normal.jpg", FIF_JPEG);
+  glActiveTexture(GL_TEXTURE0 + 13);
 }
 
 void releaseResource() {
-  glDeleteTextures(1, &tboBaseBlue);
+  glDeleteTextures(1, &tboRockBase);
+  glDeleteTextures(1, &tboRockNormal);
+  glDeleteTextures(1, &tboPebbleBase);
+  glDeleteTextures(1, &tboPebbleNormal);
 
   glfwTerminate();
   FreeImage_DeInitialise();

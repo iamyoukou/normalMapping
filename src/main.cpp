@@ -15,7 +15,7 @@ float speed = 5.0f;
 float mouseSpeed = 0.005f;
 
 mat4 model, view, projection;
-vec3 eyePoint = vec3(0.106493, 3.517007, 1.688342);
+vec3 eyePoint = vec3(2.440995, 7.005076, 3.059731);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));
@@ -39,7 +39,7 @@ void initLight();
 void initTexture();
 void initShader();
 void releaseResource();
-GLuint createTexture(GLuint, GLuint, string, string, FREE_IMAGE_FORMAT);
+GLuint createTexture(GLuint, string, FREE_IMAGE_FORMAT);
 
 int main(int argc, char **argv) {
   initGL();
@@ -50,11 +50,14 @@ int main(int argc, char **argv) {
   initLight();
 
   // prepare mesh data
-  Mesh cube = loadObj("./mesh/cube.obj");
-  initMesh(cube);
-
   Mesh grid = loadObj("./mesh/grid.obj");
   initMesh(grid);
+
+  Mesh grid2 = loadObj("./mesh/grid.obj");
+  initMesh(grid2);
+  findAABB(grid2);
+  grid2.translate(vec3(5, 0, 0));
+  updateMesh(grid2);
 
   // Mesh sphere = loadObj("./mesh/sphere.obj");
   // initMesh(sphere);
@@ -88,8 +91,6 @@ int main(int argc, char **argv) {
     // glBindTexture(GL_TEXTURE_2D, tboBaseBlue);
     // uniTexBase = myGetUniformLocation(exeShader, "texBase");
     // glUniform1i(uniTexBase, 10);
-    // glBindVertexArray(cube.vao);
-    // glDrawArrays(GL_TRIANGLES, 0, cube.faces.size() * 3);
 
     // glBindTexture(GL_TEXTURE_2D, tboBaseWhite);
     // glActiveTexture(GL_TEXTURE0 + 12);
@@ -98,6 +99,9 @@ int main(int argc, char **argv) {
     // glUniform1i(uniTexBase, 12);
     glBindVertexArray(grid.vao);
     glDrawArrays(GL_TRIANGLES, 0, grid.faces.size() * 3);
+
+    glBindVertexArray(grid2.vao);
+    glDrawArrays(GL_TRIANGLES, 0, grid2.faces.size() * 3);
 
     // glBindVertexArray(sphere.vao);
     // glDrawArrays(GL_TRIANGLES, 0, sphere.faces.size() * 3);
@@ -115,8 +119,7 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-GLuint createTexture(GLuint texUnit, GLuint shader, string samplerName,
-                     string imgDir, FREE_IMAGE_FORMAT imgType) {
+GLuint createTexture(GLuint texUnit, string imgDir, FREE_IMAGE_FORMAT imgType) {
   glActiveTexture(GL_TEXTURE0 + texUnit);
 
   FIBITMAP *texImage =
@@ -315,21 +318,21 @@ void initShader() {
 }
 
 void initTexture() { // base texture
-  tboBaseBlue = createTexture(10, exeShader, "texBase",
-                              "./res/rock_basecolor.jpg", FIF_JPEG);
+  tboBaseBlue = createTexture(10, "./res/rock_basecolor.jpg", FIF_JPEG);
   glActiveTexture(GL_TEXTURE0 + 10);
   uniTexBase = myGetUniformLocation(exeShader, "texBase");
   glUniform1i(uniTexBase, 10);
 
-  // tboBaseWhite =
-  //     createTexture(12, exeShader, "texBase", "./res/stone.jpg", FIF_PNG);
-
   // normal texture
-  tboNormal = createTexture(11, exeShader, "texNormal", "./res/rock_normal.jpg",
-                            FIF_JPEG);
+  tboNormal = createTexture(11, "./res/rock_normal.jpg", FIF_JPEG);
   glActiveTexture(GL_TEXTURE0 + 11);
   uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
   glUniform1i(uniTexNormal, 11);
+
+  tboBaseWhite = createTexture(12, "./res/stone.png", FIF_PNG);
+  glActiveTexture(GL_TEXTURE0 + 12);
+  // uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
+  // glUniform1i(uniTexNormal, 12);
 }
 
 void releaseResource() {

@@ -22,7 +22,7 @@ vec3 eyeDirection =
 vec3 up = vec3(0.f, 1.f, 0.f);
 
 /* opengl variables */
-GLuint exeShader;
+GLuint shaderPhong;
 GLuint tboRockBase, tboRockNormal, tboPebbleBase, tboPebbleNormal;
 GLint uniM, uniV, uniP, uniMvp;
 GLint uniLightColor, uniLightPosition, uniLightPower;
@@ -79,12 +79,13 @@ int main(int argc, char **argv) {
     glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
     glUniform3fv(uniEyePoint, 1, value_ptr(eyePoint));
 
-    // draw 3d model
+    // draw mesh
     glUniform1i(uniTexBase, 12);   // change base color
     glUniform1i(uniTexNormal, 13); // change normal
     glBindVertexArray(grid.vao);
     glDrawArrays(GL_TRIANGLES, 0, grid.faces.size() * 3);
 
+    // draw mesh
     glUniform1i(uniTexBase, 10);   // change base color
     glUniform1i(uniTexNormal, 11); // change normal
     glBindVertexArray(grid2.vao);
@@ -281,8 +282,8 @@ void initLight() {
 }
 
 void initShader() {
-  exeShader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl");
-  glUseProgram(exeShader);
+  shaderPhong = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl");
+  glUseProgram(shaderPhong);
 }
 
 void initTexture() {
@@ -302,14 +303,14 @@ void initTexture() {
 }
 
 void initUniform() {
-  uniTexBase = myGetUniformLocation(exeShader, "texBase");
-  uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
-  uniM = myGetUniformLocation(exeShader, "M");
-  uniV = myGetUniformLocation(exeShader, "V");
-  uniP = myGetUniformLocation(exeShader, "P");
-  uniEyePoint = myGetUniformLocation(exeShader, "eyePoint");
-  uniLightColor = myGetUniformLocation(exeShader, "lightColor");
-  uniLightPosition = myGetUniformLocation(exeShader, "lightPosition");
+  uniTexBase = myGetUniformLocation(shaderPhong, "texBase");
+  uniTexNormal = myGetUniformLocation(shaderPhong, "texNormal");
+  uniM = myGetUniformLocation(shaderPhong, "M");
+  uniV = myGetUniformLocation(shaderPhong, "V");
+  uniP = myGetUniformLocation(shaderPhong, "P");
+  uniEyePoint = myGetUniformLocation(shaderPhong, "eyePoint");
+  uniLightColor = myGetUniformLocation(shaderPhong, "lightColor");
+  uniLightPosition = myGetUniformLocation(shaderPhong, "lightPosition");
 }
 
 void releaseResource() {

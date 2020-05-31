@@ -23,10 +23,10 @@ vec3 up = vec3(0.f, 1.f, 0.f);
 
 /* opengl variables */
 GLuint exeShader;
-GLuint tboBase, tboNormal;
+GLuint tboBaseBlue, tboNormal, tboBaseWhite;
 GLint uniM, uniV, uniP, uniMvp;
 GLint uniLightColor, uniLightPosition, uniLightPower;
-GLint uniTexBase;
+GLint uniTexBase, uniTexNormal;
 GLint uniEyePoint;
 
 void computeMatricesFromInputs(mat4 &, mat4 &);
@@ -50,8 +50,8 @@ int main(int argc, char **argv) {
   initLight();
 
   // prepare mesh data
-  // Mesh cube = loadObj("cube.obj");
-  // initMesh(cube);
+  Mesh cube = loadObj("./mesh/cube.obj");
+  initMesh(cube);
 
   Mesh grid = loadObj("./mesh/grid.obj");
   initMesh(grid);
@@ -83,9 +83,19 @@ int main(int argc, char **argv) {
     glUniform3fv(uniEyePoint, 1, value_ptr(eyePoint));
 
     // draw 3d model
+    // glBindTexture(GL_TEXTURE_2D, tboBaseBlue);
+    // glActiveTexture(GL_TEXTURE0 + 10);
+    // glBindTexture(GL_TEXTURE_2D, tboBaseBlue);
+    // uniTexBase = myGetUniformLocation(exeShader, "texBase");
+    // glUniform1i(uniTexBase, 10);
     // glBindVertexArray(cube.vao);
     // glDrawArrays(GL_TRIANGLES, 0, cube.faces.size() * 3);
 
+    // glBindTexture(GL_TEXTURE_2D, tboBaseWhite);
+    // glActiveTexture(GL_TEXTURE0 + 12);
+    // glBindTexture(GL_TEXTURE_2D, tboBaseWhite);
+    // uniTexBase = myGetUniformLocation(exeShader, "texBase");
+    // glUniform1i(uniTexBase, 12);
     glBindVertexArray(grid.vao);
     glDrawArrays(GL_TRIANGLES, 0, grid.faces.size() * 3);
 
@@ -119,9 +129,6 @@ GLuint createTexture(GLuint texUnit, GLuint shader, string samplerName,
                FreeImage_GetHeight(texImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
                (void *)FreeImage_GetBits(texImage));
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-  uniTexBase = myGetUniformLocation(shader, samplerName);
-  glUniform1i(uniTexBase, texUnit);
 
   // release
   FreeImage_Unload(texImage);
@@ -308,16 +315,25 @@ void initShader() {
 }
 
 void initTexture() { // base texture
-  tboBase = createTexture(10, exeShader, "texBase", "./res/rock_basecolor.jpg",
-                          FIF_JPEG);
+  tboBaseBlue = createTexture(10, exeShader, "texBase",
+                              "./res/rock_basecolor.jpg", FIF_JPEG);
+  glActiveTexture(GL_TEXTURE0 + 10);
+  uniTexBase = myGetUniformLocation(exeShader, "texBase");
+  glUniform1i(uniTexBase, 10);
+
+  // tboBaseWhite =
+  //     createTexture(12, exeShader, "texBase", "./res/stone.jpg", FIF_PNG);
 
   // normal texture
   tboNormal = createTexture(11, exeShader, "texNormal", "./res/rock_normal.jpg",
                             FIF_JPEG);
+  glActiveTexture(GL_TEXTURE0 + 11);
+  uniTexNormal = myGetUniformLocation(exeShader, "texNormal");
+  glUniform1i(uniTexNormal, 11);
 }
 
 void releaseResource() {
-  glDeleteTextures(1, &tboBase);
+  glDeleteTextures(1, &tboBaseBlue);
 
   glfwTerminate();
   FreeImage_DeInitialise();

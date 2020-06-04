@@ -19,5 +19,8 @@ void main(){
 
     lightDir = (M * vec4(lightPosition - vtxCoord, 1.0)).xyz;
     lightDir = normalize(lightDir);
-    viewDir = (M * vec4(eyePoint - vtxCoord, 1.0)).xyz;
+
+    // eyePoint is already in world space, so no need to multiply M
+    // only vertex need to be multiplied by M
+    viewDir = (vec4(eyePoint, 1.0) - M * vec4(vtxCoord, 1.0)).xyz;
 }

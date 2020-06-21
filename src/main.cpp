@@ -52,14 +52,14 @@ int main(int argc, char **argv) {
   initLight();
 
   // prepare mesh data
-  Mesh grid = loadObj("./mesh/grid.obj");
-  initMesh(grid);
+  Mesh grid("./mesh/grid.obj");
+  // initMesh(grid);
 
-  Mesh grid2 = loadObj("./mesh/grid.obj");
-  initMesh(grid2);
-  findAABB(grid2);
-  grid2.translate(vec3(5, 0, 0));
-  updateMesh(grid2);
+  // Mesh grid2 = loadObj("./mesh/grid.obj");
+  // initMesh(grid2);
+  // findAABB(grid2);
+  // grid2.translate(vec3(5, 0, 0));
+  // updateMesh(grid2);
 
   // a rough way to solve cursor position initialization problem
   // must call glfwPollEvents once to activate glfwSetCursorPos
@@ -86,10 +86,10 @@ int main(int argc, char **argv) {
     glDrawArrays(GL_TRIANGLES, 0, grid.faces.size() * 3);
 
     // draw mesh
-    glUniform1i(uniTexBase, 10);   // change base color
-    glUniform1i(uniTexNormal, 11); // change normal
-    glBindVertexArray(grid2.vao);
-    glDrawArrays(GL_TRIANGLES, 0, grid2.faces.size() * 3);
+    // glUniform1i(uniTexBase, 10);   // change base color
+    // glUniform1i(uniTexNormal, 11); // change normal
+    // glBindVertexArray(grid2.vao);
+    // glDrawArrays(GL_TRIANGLES, 0, grid2.faces.size() * 3);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);

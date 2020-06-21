@@ -29,10 +29,10 @@ typedef struct {
 class Mesh {
 public:
   // mesh data
-  std::vector<glm::vec3> vertices;
-  std::vector<glm::vec2> uvs;
-  std::vector<glm::vec3> faceNormals;
-  std::vector<Face> faces;
+  vector<vec3> vertices;
+  vector<vec2> uvs;
+  vector<vec3> faceNormals;
+  vector<Face> faces;
 
   // opengl data
   GLuint vboVtxs, vboUvs, vboNormals;
@@ -42,22 +42,20 @@ public:
   vec3 min, max;
 
   /* Constructors */
-  Mesh(){};
-  ~Mesh() {
-    glDeleteBuffers(1, &vboVtxs);
-    glDeleteBuffers(1, &vboUvs);
-    glDeleteBuffers(1, &vboNormals);
-    glDeleteVertexArrays(1, &vao);
-  };
+  Mesh(const string);
+  ~Mesh();
 
   /* Member functions */
-  void translate(glm::vec3);
-  void scale(glm::vec3);
-  void rotate(glm::vec3);
+  void loadObj(const string);
+  void initBuffers();
+
+  void translate(vec3);
+  void scale(vec3);
+  void rotate(vec3);
 };
 
-std::string readFile(const std::string);
-Mesh loadObj(std::string);
+string readFile(const string);
+// Mesh loadObj(string);
 void printLog(GLuint &);
 GLint myGetUniformLocation(GLuint &, string);
 GLuint buildShader(string, string);

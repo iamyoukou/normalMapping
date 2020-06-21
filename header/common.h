@@ -56,7 +56,7 @@ public:
   void initBuffers();
   void initShader();
   void initUniform();
-  void draw(mat4, mat4, mat4, vec3, vec3, vec3);
+  void draw(mat4, mat4, mat4, vec3, vec3, vec3, int, int);
 
   void translate(vec3);
   void scale(vec3);

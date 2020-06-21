@@ -3,7 +3,7 @@
 
 GLFWwindow *window;
 
-Mesh *grid;
+Mesh *grid, *grid2;
 
 vec3 lightPosition = vec3(3.f, 3.f, 3.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
@@ -16,6 +16,7 @@ float speed = 5.0f;
 float mouseSpeed = 0.005f;
 
 mat4 model, view, projection;
+mat4 model2;
 vec3 eyePoint = vec3(2.440995, 7.005076, 3.059731);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
@@ -43,12 +44,7 @@ int main(int argc, char **argv) {
 
   // prepare mesh data
   grid = new Mesh("./mesh/grid.obj");
-
-  // Mesh grid2 = loadObj("./mesh/grid.obj");
-  // initMesh(grid2);
-  // findAABB(grid2);
-  // grid2.translate(vec3(5, 0, 0));
-  // updateMesh(grid2);
+  grid2 = new Mesh("./mesh/grid.obj");
 
   // a rough way to solve cursor position initialization problem
   // must call glfwPollEvents once to activate glfwSetCursorPos
@@ -66,13 +62,11 @@ int main(int argc, char **argv) {
     computeMatricesFromInputs(projection, view);
 
     // draw mesh
-    grid->draw(model, view, projection, eyePoint, lightColor, lightPosition);
+    grid->draw(model, view, projection, eyePoint, lightColor, lightPosition, 12,
+               13);
 
-    // draw mesh
-    // glUniform1i(uniTexBase, 10);   // change base color
-    // glUniform1i(uniTexNormal, 11); // change normal
-    // glBindVertexArray(grid2.vao);
-    // glDrawArrays(GL_TRIANGLES, 0, grid2.faces.size() * 3);
+    grid2->draw(model2, view, projection, eyePoint, lightColor, lightPosition,
+                10, 11);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
@@ -244,11 +238,11 @@ void initOthers() { FreeImage_Initialise(true); }
 
 void initMatrix() {
   model = translate(mat4(1.f), vec3(0.f, 0.f, 0.f));
-
   view = lookAt(eyePoint, eyeDirection, up);
-
   projection =
       perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
+
+  model2 = translate(mat4(1.f), vec3(5.f, 0.f, 0.f));
 }
 
 void initTexture() {

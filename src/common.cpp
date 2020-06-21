@@ -527,7 +527,7 @@ void Mesh::initBuffers() {
 }
 
 void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
-                vec3 lightPosition) {
+                vec3 lightPosition, int unitBaseColor, int unitNormal) {
   glUseProgram(shader);
 
   glUniformMatrix4fv(uniModel, 1, GL_FALSE, value_ptr(M));
@@ -539,8 +539,8 @@ void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
   glUniform3fv(uniLightColor, 1, value_ptr(lightColor));
   glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
 
-  glUniform1i(uniTexBase, 12);   // change base color
-  glUniform1i(uniTexNormal, 13); // change normal
+  glUniform1i(uniTexBase, unitBaseColor); // change base color
+  glUniform1i(uniTexNormal, unitNormal);  // change normal
 
   glBindVertexArray(vao);
   glDrawArrays(GL_TRIANGLES, 0, faces.size() * 3);

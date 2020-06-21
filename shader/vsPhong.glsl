@@ -17,7 +17,7 @@ void main(){
 
     uv = texUv;
 
-    lightDir = (M * vec4(lightPosition - vtxCoord, 1.0)).xyz;
+    lightDir = (vec4(lightPosition, 1.0) - M * vec4(vtxCoord, 1.0)).xyz;
     lightDir = normalize(lightDir);
 
     // eyePoint is already in world space, so no need to multiply M

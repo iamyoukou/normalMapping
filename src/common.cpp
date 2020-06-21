@@ -246,6 +246,26 @@ void findAABB(Mesh &mesh) {
   mesh.max = max;
 }
 
+GLuint createTexture(GLuint texUnit, string imgDir, FREE_IMAGE_FORMAT imgType) {
+  glActiveTexture(GL_TEXTURE0 + texUnit);
+
+  FIBITMAP *texImage =
+      FreeImage_ConvertTo24Bits(FreeImage_Load(imgType, imgDir.c_str()));
+
+  GLuint tboTex;
+  glGenTextures(1, &tboTex);
+  glBindTexture(GL_TEXTURE_2D, tboTex);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texImage),
+               FreeImage_GetHeight(texImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
+               (void *)FreeImage_GetBits(texImage));
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  // release
+  FreeImage_Unload(texImage);
+
+  return tboTex;
+}
+
 void drawBox(vec3 min, vec3 max) {
   // 8 corners
   GLfloat aVtxs[]{

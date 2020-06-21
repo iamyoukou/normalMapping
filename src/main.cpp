@@ -65,6 +65,9 @@ int main(int argc, char **argv) {
     grid->draw(model, view, projection, eyePoint, lightColor, lightPosition, 12,
                13);
 
+    // It is better to always use transform matrix
+    // to move, rotate and scale objects.
+    // This can avoid updating vertex buffers.
     grid2->draw(model2, view, projection, eyePoint, lightColor, lightPosition,
                 10, 11);
 
@@ -78,26 +81,6 @@ int main(int argc, char **argv) {
   releaseResource();
 
   return EXIT_SUCCESS;
-}
-
-GLuint createTexture(GLuint texUnit, string imgDir, FREE_IMAGE_FORMAT imgType) {
-  glActiveTexture(GL_TEXTURE0 + texUnit);
-
-  FIBITMAP *texImage =
-      FreeImage_ConvertTo24Bits(FreeImage_Load(imgType, imgDir.c_str()));
-
-  GLuint tboTex;
-  glGenTextures(1, &tboTex);
-  glBindTexture(GL_TEXTURE_2D, tboTex);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texImage),
-               FreeImage_GetHeight(texImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
-               (void *)FreeImage_GetBits(texImage));
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-  // release
-  FreeImage_Unload(texImage);
-
-  return tboTex;
 }
 
 void computeMatricesFromInputs(mat4 &newProject, mat4 &newView) {

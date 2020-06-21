@@ -72,3 +72,4 @@ GLuint linkShader(GLuint, GLuint);
 void updateMesh(Mesh &);
 void findAABB(Mesh &);
 void drawBox(vec3, vec3);
+GLuint createTexture(GLuint, string, FREE_IMAGE_FORMAT);

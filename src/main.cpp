@@ -79,8 +79,8 @@ int main(int argc, char **argv) {
     // draw mesh
     glUniform1i(uniTexBase, 12);   // change base color
     glUniform1i(uniTexNormal, 13); // change normal
-    glBindVertexArray(grid->vao);
-    glDrawArrays(GL_TRIANGLES, 0, grid->faces.size() * 3);
+
+    grid->draw(model, view, projection, eyePoint);
 
     // draw mesh
     // glUniform1i(uniTexBase, 10);   // change base color
@@ -259,19 +259,10 @@ void initOthers() { FreeImage_Initialise(true); }
 void initMatrix() {
   model = translate(mat4(1.f), vec3(0.f, 0.f, 0.f));
 
-  view = lookAt(eyePoint,     // eye position
-                eyeDirection, // look at
-                up            // up
-  );
+  view = lookAt(eyePoint, eyeDirection, up);
 
   projection =
       perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
-
-  glUniformMatrix4fv(grid->uniModel, 1, GL_FALSE, value_ptr(model));
-  glUniformMatrix4fv(grid->uniView, 1, GL_FALSE, value_ptr(view));
-  glUniformMatrix4fv(grid->uniProjection, 1, GL_FALSE, value_ptr(projection));
-
-  glUniform3fv(grid->uniEyePoint, 1, value_ptr(eyePoint));
 }
 
 void initLight() {
@@ -297,6 +288,7 @@ void initTexture() {
 
 void initUniform() {
   glUseProgram(grid->shader);
+
   uniTexBase = myGetUniformLocation(grid->shader, "texBase");
   uniTexNormal = myGetUniformLocation(grid->shader, "texNormal");
 }

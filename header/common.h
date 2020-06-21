@@ -55,6 +55,7 @@ public:
   void initBuffers();
   void initShader();
   void initUniform();
+  void draw(mat4, mat4, mat4, vec3);
 
   void translate(vec3);
   void scale(vec3);
@@ -62,13 +63,11 @@ public:
 };
 
 string readFile(const string);
-// Mesh loadObj(string);
 void printLog(GLuint &);
 GLint myGetUniformLocation(GLuint &, string);
 GLuint buildShader(string, string);
 GLuint compileShader(string, GLenum);
 GLuint linkShader(GLuint, GLuint);
-void initMesh(Mesh &);
 void updateMesh(Mesh &);
 void findAABB(Mesh &);
 void drawBox(vec3, vec3);

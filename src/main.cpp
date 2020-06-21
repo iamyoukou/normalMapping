@@ -7,7 +7,6 @@ Mesh *grid;
 
 vec3 lightPosition = vec3(3.f, 3.f, 3.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
-float lightPower = 1.f;
 
 /* for view control */
 float verticalAngle = -2.76603;
@@ -24,12 +23,8 @@ vec3 eyeDirection =
 vec3 up = vec3(0.f, 1.f, 0.f);
 
 /* opengl variables */
-GLuint shaderPhong;
 GLuint tboRockBase, tboRockNormal, tboPebbleBase, tboPebbleNormal;
-GLint uniM, uniV, uniP, uniMvp;
-GLint uniLightColor, uniLightPosition, uniLightPower;
 GLint uniTexBase, uniTexNormal;
-GLint uniEyePoint;
 
 void computeMatricesFromInputs(mat4 &, mat4 &);
 void keyCallback(GLFWwindow *, int, int, int, int);
@@ -75,9 +70,9 @@ int main(int argc, char **argv) {
 
     // view control
     computeMatricesFromInputs(projection, view);
-    glUniformMatrix4fv(uniV, 1, GL_FALSE, value_ptr(view));
-    glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
-    glUniform3fv(uniEyePoint, 1, value_ptr(eyePoint));
+    glUniformMatrix4fv(grid->uniView, 1, GL_FALSE, value_ptr(view));
+    glUniformMatrix4fv(grid->uniProjection, 1, GL_FALSE, value_ptr(projection));
+    glUniform3fv(grid->uniEyePoint, 1, value_ptr(eyePoint));
 
     // std::cout << "here" << '\n';
 
@@ -272,15 +267,16 @@ void initMatrix() {
   projection =
       perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
 
-  glUniformMatrix4fv(uniM, 1, GL_FALSE, value_ptr(model));
-  glUniformMatrix4fv(uniV, 1, GL_FALSE, value_ptr(view));
-  glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
+  glUniformMatrix4fv(grid->uniModel, 1, GL_FALSE, value_ptr(model));
+  glUniformMatrix4fv(grid->uniView, 1, GL_FALSE, value_ptr(view));
+  glUniformMatrix4fv(grid->uniProjection, 1, GL_FALSE, value_ptr(projection));
 
-  glUniform3fv(uniEyePoint, 1, value_ptr(eyePoint));
+  glUniform3fv(grid->uniEyePoint, 1, value_ptr(eyePoint));
 }
+
 void initLight() {
-  glUniform3fv(uniLightColor, 1, value_ptr(lightColor));
-  glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
+  glUniform3fv(grid->uniLightColor, 1, value_ptr(lightColor));
+  glUniform3fv(grid->uniLightPosition, 1, value_ptr(lightPosition));
 }
 
 void initTexture() {
@@ -303,12 +299,6 @@ void initUniform() {
   glUseProgram(grid->shader);
   uniTexBase = myGetUniformLocation(grid->shader, "texBase");
   uniTexNormal = myGetUniformLocation(grid->shader, "texNormal");
-  uniM = myGetUniformLocation(grid->shader, "M");
-  uniV = myGetUniformLocation(grid->shader, "V");
-  uniP = myGetUniformLocation(grid->shader, "P");
-  uniEyePoint = myGetUniformLocation(grid->shader, "eyePoint");
-  uniLightColor = myGetUniformLocation(grid->shader, "lightColor");
-  uniLightPosition = myGetUniformLocation(grid->shader, "lightPosition");
 }
 
 void releaseResource() {

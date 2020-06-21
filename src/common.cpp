@@ -505,6 +505,7 @@ Mesh::Mesh(const string fileName) {
   loadObj(fileName);
   initBuffers();
   initShader();
+  initUniform();
 }
 
 Mesh::~Mesh() {
@@ -516,6 +517,15 @@ Mesh::~Mesh() {
 
 void Mesh::initShader() {
   shader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl");
+}
+
+void Mesh::initUniform() {
+  uniModel = myGetUniformLocation(shader, "M");
+  uniView = myGetUniformLocation(shader, "V");
+  uniProjection = myGetUniformLocation(shader, "P");
+  uniEyePoint = myGetUniformLocation(shader, "eyePoint");
+  uniLightColor = myGetUniformLocation(shader, "lightColor");
+  uniLightPosition = myGetUniformLocation(shader, "lightPosition");
 }
 
 void Mesh::loadObj(const string fileName) {

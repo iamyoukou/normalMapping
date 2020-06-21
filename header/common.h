@@ -38,9 +38,13 @@ public:
   GLuint vboVtxs, vboUvs, vboNormals;
   GLuint vao;
   GLuint shader;
+  GLint uniModel, uniView, uniProjection;
+  GLint uniEyePoint, uniLightColor, uniLightPosition;
 
   // aabb
   vec3 min, max;
+
+  mat4 model, view, projection;
 
   /* Constructors */
   Mesh(const string);
@@ -50,6 +54,7 @@ public:
   void loadObj(const string);
   void initBuffers();
   void initShader();
+  void initUniform();
 
   void translate(vec3);
   void scale(vec3);

@@ -24,7 +24,6 @@ vec3 up = vec3(0.f, 1.f, 0.f);
 
 /* opengl variables */
 GLuint tboRockBase, tboRockNormal, tboPebbleBase, tboPebbleNormal;
-GLint uniTexBase, uniTexNormal;
 
 void computeMatricesFromInputs(mat4 &, mat4 &);
 void keyCallback(GLFWwindow *, int, int, int, int);
@@ -32,23 +31,18 @@ void keyCallback(GLFWwindow *, int, int, int, int);
 void initGL();
 void initOthers();
 void initMatrix();
-void initLight();
 void initTexture();
-void initUniform();
 void releaseResource();
 GLuint createTexture(GLuint, string, FREE_IMAGE_FORMAT);
 
 int main(int argc, char **argv) {
   initGL();
   initOthers();
+  initTexture();
+  initMatrix();
 
   // prepare mesh data
   grid = new Mesh("./mesh/grid.obj");
-
-  initUniform();
-  initTexture();
-  initMatrix();
-  initLight();
 
   // Mesh grid2 = loadObj("./mesh/grid.obj");
   // initMesh(grid2);
@@ -70,17 +64,9 @@ int main(int argc, char **argv) {
 
     // view control
     computeMatricesFromInputs(projection, view);
-    glUniformMatrix4fv(grid->uniView, 1, GL_FALSE, value_ptr(view));
-    glUniformMatrix4fv(grid->uniProjection, 1, GL_FALSE, value_ptr(projection));
-    glUniform3fv(grid->uniEyePoint, 1, value_ptr(eyePoint));
-
-    // std::cout << "here" << '\n';
 
     // draw mesh
-    glUniform1i(uniTexBase, 12);   // change base color
-    glUniform1i(uniTexNormal, 13); // change normal
-
-    grid->draw(model, view, projection, eyePoint);
+    grid->draw(model, view, projection, eyePoint, lightColor, lightPosition);
 
     // draw mesh
     // glUniform1i(uniTexBase, 10);   // change base color
@@ -265,11 +251,6 @@ void initMatrix() {
       perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
 }
 
-void initLight() {
-  glUniform3fv(grid->uniLightColor, 1, value_ptr(lightColor));
-  glUniform3fv(grid->uniLightPosition, 1, value_ptr(lightPosition));
-}
-
 void initTexture() {
   // base texture
   tboRockBase = createTexture(10, "./res/rock_basecolor.jpg", FIF_JPEG);
@@ -284,13 +265,6 @@ void initTexture() {
 
   tboPebbleNormal = createTexture(13, "./res/stone_normal.jpg", FIF_JPEG);
   glActiveTexture(GL_TEXTURE0 + 13);
-}
-
-void initUniform() {
-  glUseProgram(grid->shader);
-
-  uniTexBase = myGetUniformLocation(grid->shader, "texBase");
-  uniTexNormal = myGetUniformLocation(grid->shader, "texNormal");
 }
 
 void releaseResource() {

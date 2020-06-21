@@ -40,6 +40,7 @@ public:
   GLuint shader;
   GLint uniModel, uniView, uniProjection;
   GLint uniEyePoint, uniLightColor, uniLightPosition;
+  GLint uniTexBase, uniTexNormal;
 
   // aabb
   vec3 min, max;
@@ -55,7 +56,7 @@ public:
   void initBuffers();
   void initShader();
   void initUniform();
-  void draw(mat4, mat4, mat4, vec3);
+  void draw(mat4, mat4, mat4, vec3, vec3, vec3);
 
   void translate(vec3);
   void scale(vec3);

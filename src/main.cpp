@@ -3,6 +3,8 @@
 
 GLFWwindow *window;
 
+Mesh *grid;
+
 vec3 lightPosition = vec3(3.f, 3.f, 3.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
 float lightPower = 1.f;
@@ -37,7 +39,6 @@ void initOthers();
 void initMatrix();
 void initLight();
 void initTexture();
-void initShader();
 void initUniform();
 void releaseResource();
 GLuint createTexture(GLuint, string, FREE_IMAGE_FORMAT);
@@ -45,15 +46,14 @@ GLuint createTexture(GLuint, string, FREE_IMAGE_FORMAT);
 int main(int argc, char **argv) {
   initGL();
   initOthers();
-  initShader();
+
+  // prepare mesh data
+  grid = new Mesh("./mesh/grid.obj");
+
   initUniform();
   initTexture();
   initMatrix();
   initLight();
-
-  // prepare mesh data
-  Mesh grid("./mesh/grid.obj");
-  // initMesh(grid);
 
   // Mesh grid2 = loadObj("./mesh/grid.obj");
   // initMesh(grid2);
@@ -79,11 +79,13 @@ int main(int argc, char **argv) {
     glUniformMatrix4fv(uniP, 1, GL_FALSE, value_ptr(projection));
     glUniform3fv(uniEyePoint, 1, value_ptr(eyePoint));
 
+    // std::cout << "here" << '\n';
+
     // draw mesh
     glUniform1i(uniTexBase, 12);   // change base color
     glUniform1i(uniTexNormal, 13); // change normal
-    glBindVertexArray(grid.vao);
-    glDrawArrays(GL_TRIANGLES, 0, grid.faces.size() * 3);
+    glBindVertexArray(grid->vao);
+    glDrawArrays(GL_TRIANGLES, 0, grid->faces.size() * 3);
 
     // draw mesh
     // glUniform1i(uniTexBase, 10);   // change base color
@@ -281,11 +283,6 @@ void initLight() {
   glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
 }
 
-void initShader() {
-  shaderPhong = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl");
-  glUseProgram(shaderPhong);
-}
-
 void initTexture() {
   // base texture
   tboRockBase = createTexture(10, "./res/rock_basecolor.jpg", FIF_JPEG);
@@ -303,14 +300,15 @@ void initTexture() {
 }
 
 void initUniform() {
-  uniTexBase = myGetUniformLocation(shaderPhong, "texBase");
-  uniTexNormal = myGetUniformLocation(shaderPhong, "texNormal");
-  uniM = myGetUniformLocation(shaderPhong, "M");
-  uniV = myGetUniformLocation(shaderPhong, "V");
-  uniP = myGetUniformLocation(shaderPhong, "P");
-  uniEyePoint = myGetUniformLocation(shaderPhong, "eyePoint");
-  uniLightColor = myGetUniformLocation(shaderPhong, "lightColor");
-  uniLightPosition = myGetUniformLocation(shaderPhong, "lightPosition");
+  glUseProgram(grid->shader);
+  uniTexBase = myGetUniformLocation(grid->shader, "texBase");
+  uniTexNormal = myGetUniformLocation(grid->shader, "texNormal");
+  uniM = myGetUniformLocation(grid->shader, "M");
+  uniV = myGetUniformLocation(grid->shader, "V");
+  uniP = myGetUniformLocation(grid->shader, "P");
+  uniEyePoint = myGetUniformLocation(grid->shader, "eyePoint");
+  uniLightColor = myGetUniformLocation(grid->shader, "lightColor");
+  uniLightPosition = myGetUniformLocation(grid->shader, "lightPosition");
 }
 
 void releaseResource() {

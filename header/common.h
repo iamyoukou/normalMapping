@@ -37,6 +37,7 @@ public:
   // opengl data
   GLuint vboVtxs, vboUvs, vboNormals;
   GLuint vao;
+  GLuint shader;
 
   // aabb
   vec3 min, max;
@@ -48,6 +49,7 @@ public:
   /* Member functions */
   void loadObj(const string);
   void initBuffers();
+  void initShader();
 
   void translate(vec3);
   void scale(vec3);

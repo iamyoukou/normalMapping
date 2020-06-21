@@ -504,6 +504,7 @@ void drawBox(vec3 min, vec3 max) {
 Mesh::Mesh(const string fileName) {
   loadObj(fileName);
   initBuffers();
+  initShader();
 }
 
 Mesh::~Mesh() {
@@ -511,6 +512,10 @@ Mesh::~Mesh() {
   glDeleteBuffers(1, &vboUvs);
   glDeleteBuffers(1, &vboNormals);
   glDeleteVertexArrays(1, &vao);
+}
+
+void Mesh::initShader() {
+  shader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl");
 }
 
 void Mesh::loadObj(const string fileName) {

@@ -212,60 +212,6 @@ GLint myGetUniformLocation(GLuint &prog, string name) {
 //   // delete[] aNormals;
 // }
 
-void findAABB(Mesh &mesh) {
-  int nOfVtxs = mesh.vertices.size();
-  vec3 min(0, 0, 0), max(0, 0, 0);
-
-  for (size_t i = 0; i < nOfVtxs; i++) {
-    vec3 vtx = mesh.vertices[i];
-
-    // x
-    if (vtx.x > max.x) {
-      max.x = vtx.x;
-    }
-    if (vtx.x < min.x) {
-      min.x = vtx.x;
-    }
-    // y
-    if (vtx.y > max.y) {
-      max.y = vtx.y;
-    }
-    if (vtx.y < min.y) {
-      min.y = vtx.y;
-    }
-    // z
-    if (vtx.z > max.z) {
-      max.z = vtx.z;
-    }
-    if (vtx.z < min.z) {
-      min.z = vtx.z;
-    }
-  }
-
-  mesh.min = min;
-  mesh.max = max;
-}
-
-GLuint createTexture(GLuint texUnit, string imgDir, FREE_IMAGE_FORMAT imgType) {
-  glActiveTexture(GL_TEXTURE0 + texUnit);
-
-  FIBITMAP *texImage =
-      FreeImage_ConvertTo24Bits(FreeImage_Load(imgType, imgDir.c_str()));
-
-  GLuint tboTex;
-  glGenTextures(1, &tboTex);
-  glBindTexture(GL_TEXTURE_2D, tboTex);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texImage),
-               FreeImage_GetHeight(texImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
-               (void *)FreeImage_GetBits(texImage));
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-  // release
-  FreeImage_Unload(texImage);
-
-  return tboTex;
-}
-
 void drawBox(vec3 min, vec3 max) {
   // 8 corners
   GLfloat aVtxs[]{
@@ -340,9 +286,6 @@ Mesh::Mesh(const string fileName) {
   initBuffers();
   initShader();
   initUniform();
-
-  uniTexBase = myGetUniformLocation(shader, "texBase");
-  uniTexNormal = myGetUniformLocation(shader, "texNormal");
 }
 
 Mesh::~Mesh() {
@@ -363,6 +306,8 @@ void Mesh::initUniform() {
   uniEyePoint = myGetUniformLocation(shader, "eyePoint");
   uniLightColor = myGetUniformLocation(shader, "lightColor");
   uniLightPosition = myGetUniformLocation(shader, "lightPosition");
+  uniTexBase = myGetUniformLocation(shader, "texBase");
+  uniTexNormal = myGetUniformLocation(shader, "texNormal");
 }
 
 void Mesh::loadObj(const string fileName) {
@@ -546,6 +491,24 @@ void Mesh::initBuffers() {
   delete[] aNormals;
 }
 
+void Mesh::setTexture(GLuint &tbo, int texUnit, const string texDir,
+                      FREE_IMAGE_FORMAT imgType) {
+  glActiveTexture(GL_TEXTURE0 + texUnit);
+
+  FIBITMAP *texImage =
+      FreeImage_ConvertTo24Bits(FreeImage_Load(imgType, texDir.c_str()));
+
+  glGenTextures(1, &tbo);
+  glBindTexture(GL_TEXTURE_2D, tbo);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texImage),
+               FreeImage_GetHeight(texImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
+               (void *)FreeImage_GetBits(texImage));
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  // release
+  FreeImage_Unload(texImage);
+}
+
 void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
                 vec3 lightPosition, int unitBaseColor, int unitNormal) {
   glUseProgram(shader);
@@ -598,3 +561,37 @@ void Mesh::scale(glm::vec3 xyz) {
 // rotate mesh along x, y, z axes
 // xyz specifies the rotated angle along each axis
 void Mesh::rotate(glm::vec3 xyz) {}
+
+void Mesh::findAABB() {
+  int nOfVtxs = vertices.size();
+  vec3 min(0, 0, 0), max(0, 0, 0);
+
+  for (size_t i = 0; i < nOfVtxs; i++) {
+    vec3 vtx = vertices[i];
+
+    // x
+    if (vtx.x > max.x) {
+      max.x = vtx.x;
+    }
+    if (vtx.x < min.x) {
+      min.x = vtx.x;
+    }
+    // y
+    if (vtx.y > max.y) {
+      max.y = vtx.y;
+    }
+    if (vtx.y < min.y) {
+      min.y = vtx.y;
+    }
+    // z
+    if (vtx.z > max.z) {
+      max.z = vtx.z;
+    }
+    if (vtx.z < min.z) {
+      min.z = vtx.z;
+    }
+  }
+
+  min = min;
+  max = max;
+}

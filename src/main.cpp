@@ -23,9 +23,6 @@ vec3 eyeDirection =
          sin(verticalAngle) * sin(horizontalAngle));
 vec3 up = vec3(0.f, 1.f, 0.f);
 
-/* opengl variables */
-GLuint tboRockBase, tboRockNormal, tboPebbleBase, tboPebbleNormal;
-
 void computeMatricesFromInputs(mat4 &, mat4 &);
 void keyCallback(GLFWwindow *, int, int, int, int);
 
@@ -39,12 +36,13 @@ GLuint createTexture(GLuint, string, FREE_IMAGE_FORMAT);
 int main(int argc, char **argv) {
   initGL();
   initOthers();
-  initTexture();
-  initMatrix();
 
   // prepare mesh data
   grid = new Mesh("./mesh/grid.obj");
   grid2 = new Mesh("./mesh/grid.obj");
+
+  initTexture();
+  initMatrix();
 
   // a rough way to solve cursor position initialization problem
   // must call glfwPollEvents once to activate glfwSetCursorPos
@@ -229,27 +227,17 @@ void initMatrix() {
 }
 
 void initTexture() {
-  // base texture
-  tboRockBase = createTexture(10, "./res/rock_basecolor.jpg", FIF_JPEG);
-  glActiveTexture(GL_TEXTURE0 + 10);
+  grid->setTexture(grid->tboBase, 10, "./res/rock_basecolor.jpg", FIF_JPEG);
+  grid->setTexture(grid->tboNormal, 11, "./res/rock_normal.jpg", FIF_JPEG);
 
-  // normal texture
-  tboRockNormal = createTexture(11, "./res/rock_normal.jpg", FIF_JPEG);
-  glActiveTexture(GL_TEXTURE0 + 11);
-
-  tboPebbleBase = createTexture(12, "./res/stone_basecolor.jpg", FIF_JPEG);
-  glActiveTexture(GL_TEXTURE0 + 12);
-
-  tboPebbleNormal = createTexture(13, "./res/stone_normal.jpg", FIF_JPEG);
-  glActiveTexture(GL_TEXTURE0 + 13);
+  grid2->setTexture(grid2->tboBase, 12, "./res/stone_basecolor.jpg", FIF_JPEG);
+  grid2->setTexture(grid2->tboNormal, 13, "./res/stone_normal.jpg", FIF_JPEG);
 }
 
 void releaseResource() {
-  glDeleteTextures(1, &tboRockBase);
-  glDeleteTextures(1, &tboRockNormal);
-  glDeleteTextures(1, &tboPebbleBase);
-  glDeleteTextures(1, &tboPebbleNormal);
-
   glfwTerminate();
   FreeImage_DeInitialise();
+
+  delete grid;
+  delete grid2;
 }

@@ -38,6 +38,7 @@ public:
   GLuint vboVtxs, vboUvs, vboNormals;
   GLuint vao;
   GLuint shader;
+  GLuint tboBase, tboNormal;
   GLint uniModel, uniView, uniProjection;
   GLint uniEyePoint, uniLightColor, uniLightPosition;
   GLint uniTexBase, uniTexNormal;
@@ -57,10 +58,12 @@ public:
   void initShader();
   void initUniform();
   void draw(mat4, mat4, mat4, vec3, vec3, vec3, int, int);
+  void setTexture(GLuint &, int, const string, FREE_IMAGE_FORMAT);
 
   void translate(vec3);
   void scale(vec3);
   void rotate(vec3);
+  void findAABB();
 };
 
 string readFile(const string);
@@ -70,6 +73,4 @@ GLuint buildShader(string, string);
 GLuint compileShader(string, GLenum);
 GLuint linkShader(GLuint, GLuint);
 void updateMesh(Mesh &);
-void findAABB(Mesh &);
 void drawBox(vec3, vec3);
-GLuint createTexture(GLuint, string, FREE_IMAGE_FORMAT);

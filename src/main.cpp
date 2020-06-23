@@ -1,5 +1,4 @@
 #include "common.h"
-#include <glm/gtx/string_cast.hpp>
 
 GLFWwindow *window;
 
@@ -14,6 +13,7 @@ float horizontalAngle = 1.56834;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
+float nearPlane = 0.01f, farPlane = 1000.f;
 
 mat4 model, view, projection;
 mat4 model2;
@@ -23,7 +23,7 @@ vec3 eyeDirection =
          sin(verticalAngle) * sin(horizontalAngle));
 vec3 up = vec3(0.f, 1.f, 0.f);
 
-void computeMatricesFromInputs(mat4 &, mat4 &);
+void computeMatricesFromInputs();
 void keyCallback(GLFWwindow *, int, int, int, int);
 
 void initGL();
@@ -31,7 +31,6 @@ void initOthers();
 void initMatrix();
 void initTexture();
 void releaseResource();
-GLuint createTexture(GLuint, string, FREE_IMAGE_FORMAT);
 
 int main(int argc, char **argv) {
   initGL();
@@ -57,7 +56,7 @@ int main(int argc, char **argv) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // view control
-    computeMatricesFromInputs(projection, view);
+    computeMatricesFromInputs();
 
     // draw mesh
     grid->draw(model, view, projection, eyePoint, lightColor, lightPosition, 12,
@@ -81,7 +80,7 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-void computeMatricesFromInputs(mat4 &newProject, mat4 &newView) {
+void computeMatricesFromInputs() {
   // glfwGetTime is called only once, the first time this function is called
   static float lastTime = glfwGetTime();
 
@@ -132,10 +131,10 @@ void computeMatricesFromInputs(mat4 &newProject, mat4 &newView) {
   }
 
   // float FoV = initialFoV;
-  newProject =
-      perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
+  projection = perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT,
+                           nearPlane, farPlane);
   // Camera matrix
-  newView = lookAt(eyePoint, eyePoint + direction, newUp);
+  view = lookAt(eyePoint, eyePoint + direction, newUp);
 
   // For the next frame, the "last time" will be "now"
   lastTime = currentTime;
@@ -220,8 +219,8 @@ void initOthers() { FreeImage_Initialise(true); }
 void initMatrix() {
   model = translate(mat4(1.f), vec3(0.f, 0.f, 0.f));
   view = lookAt(eyePoint, eyeDirection, up);
-  projection =
-      perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
+  projection = perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT,
+                           nearPlane, farPlane);
 
   model2 = translate(mat4(1.f), vec3(5.f, 0.f, 0.f));
 }

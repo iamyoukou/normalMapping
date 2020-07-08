@@ -59,14 +59,21 @@ int main(int argc, char **argv) {
     computeMatricesFromInputs();
 
     // draw mesh
-    grid->draw(model, view, projection, eyePoint, lightColor, lightPosition, 12,
-               13);
+    // grid->draw(model, view, projection, eyePoint, lightColor, lightPosition,
+    // 12,
+    //            13);
 
     // It is better to always use transform matrix
     // to move, rotate and scale objects.
     // This can avoid updating vertex buffers.
-    grid2->draw(model2, view, projection, eyePoint, lightColor, lightPosition,
-                10, 11);
+    for (int r = -2; r < 3; r++) {
+      for (int c = -2; c < 3; c++) {
+        mat4 tempModel = translate(mat4(1.f), vec3(-4.f * r, 0.f, 4.f * c));
+
+        grid2->draw(tempModel, view, projection, eyePoint, lightColor,
+                    lightPosition, 10, 11);
+      }
+    }
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);

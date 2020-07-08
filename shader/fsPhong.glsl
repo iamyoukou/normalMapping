@@ -17,9 +17,10 @@ void main(){
     vec3 normal = texture(texNormal, uv).xyz;
     normal = normalize((normal - 0.5) * 2.0);
 
-    vec3 reflectDir = normalize(reflect(-lightDir, normal));
+    // vec3 reflectDir = normalize(reflect(-lightDir, normal));
+    vec3 H = normalize(lightDir + viewDir);
 
-    float ka = 0.01, kd = 0.25, ks = 0.8;
+    float ka = 0.05, kd = 0.1, ks = 0.85;
     float alpha = 10;
 
     float scale = 1;
@@ -29,7 +30,7 @@ void main(){
 
     outputColor = ambient;
     outputColor += diffuse * clamp(dot(normal, lightDir), 0, 1);
-    outputColor += specular * pow(clamp(dot(reflectDir, viewDir), 0, 1), alpha);
+    outputColor += specular * pow(clamp(dot(H, normal), 0, 1), alpha);
 
     outputColor += texColor;
 }

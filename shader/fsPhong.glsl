@@ -17,7 +17,6 @@ void main(){
     vec3 normal = texture(texNormal, uv).xyz;
     normal = normalize((normal - 0.5) * 2.0);
 
-    // vec3 reflectDir = normalize(reflect(-lightDir, normal));
     vec3 H = normalize(lightDir + viewDir);
 
     float ka = 0.05, kd = 0.1, ks = 0.85;

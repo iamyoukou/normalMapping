@@ -4,12 +4,12 @@ GLFWwindow *window;
 
 Mesh *grid, *grid2;
 
-vec3 lightPosition = vec3(3.f, 3.f, 3.f);
+vec3 lightPosition = vec3(10.f, 3.f, 10.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
 
 /* for view control */
-float verticalAngle = -2.76603;
-float horizontalAngle = 1.56834;
+float verticalAngle = -1.95439;
+float horizontalAngle = 3.98102;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
@@ -17,11 +17,16 @@ float nearPlane = 0.01f, farPlane = 1000.f;
 
 mat4 model, view, projection;
 mat4 model2;
-vec3 eyePoint = vec3(2.440995, 7.005076, 3.059731);
+vec3 eyePoint = vec3(-7.735105, 6.012015, -8.435227);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));
 vec3 up = vec3(0.f, 1.f, 0.f);
+
+// test
+vector<Point> pts;
+GLuint pointShader;
+GLint uniPointM, uniPointV, uniPointP;
 
 void computeMatricesFromInputs();
 void keyCallback(GLFWwindow *, int, int, int, int);
@@ -42,6 +47,11 @@ int main(int argc, char **argv) {
 
   initTexture();
   initMatrix();
+
+  Point p;
+  p.pos = lightPosition;
+  p.color = vec3(1.f);
+  pts.push_back(p);
 
   // a rough way to solve cursor position initialization problem
   // must call glfwPollEvents once to activate glfwSetCursorPos
@@ -74,6 +84,12 @@ int main(int argc, char **argv) {
                     lightPosition, 10, 11);
       }
     }
+
+    glUseProgram(pointShader);
+    glUniformMatrix4fv(uniPointM, 1, GL_FALSE, value_ptr(model));
+    glUniformMatrix4fv(uniPointV, 1, GL_FALSE, value_ptr(view));
+    glUniformMatrix4fv(uniPointP, 1, GL_FALSE, value_ptr(projection));
+    drawPoints(pts);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
@@ -219,9 +235,20 @@ void initGL() { // Initialise GLFW
 
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST); // must enable depth test!!
+
+  glEnable(GL_PROGRAM_POINT_SIZE);
+  glPointSize(20);
 }
 
-void initOthers() { FreeImage_Initialise(true); }
+void initOthers() {
+  FreeImage_Initialise(true);
+
+  pointShader = buildShader("./shader/vsPoint.glsl", "./shader/fsPoint.glsl");
+  glUseProgram(pointShader);
+  uniPointM = myGetUniformLocation(pointShader, "M");
+  uniPointV = myGetUniformLocation(pointShader, "V");
+  uniPointP = myGetUniformLocation(pointShader, "P");
+}
 
 void initMatrix() {
   model = translate(mat4(1.f), vec3(0.f, 0.f, 0.f));

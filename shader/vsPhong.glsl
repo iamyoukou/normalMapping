@@ -1,15 +1,13 @@
 #version 330
 layout( location = 0 ) in vec3 vtxCoord;
 layout( location = 1 ) in vec2 texUv;
-layout( location = 2 ) in vec3 normal;
+layout( location = 2 ) in vec3 vtxN;
 
 out vec2 uv;
-out vec3 lightDir;
-out vec3 viewDir;
+out vec3 worldPos;
+out vec3 worldN;
 
 uniform mat4 M, V, P;
-uniform vec3 lightPosition;
-uniform vec3 eyePoint;
 
 void main(){
     //projection plane
@@ -17,10 +15,8 @@ void main(){
 
     uv = texUv;
 
-    lightDir = (vec4(lightPosition, 1.0) - M * vec4(vtxCoord, 1.0)).xyz;
-    lightDir = normalize(lightDir);
-
-    // eyePoint is already in world space, so no need to multiply M
-    // only vertex need to be multiplied by M
-    viewDir = (vec4(eyePoint, 1.0) - M * vec4(vtxCoord, 1.0)).xyz;
+    worldPos = (M * vec4(vtxCoord, 1.0)).xyz;
+    
+    worldN = (vec4(vtxN, 1.0) * inverse(M)).xyz;
+    worldN = normalize(worldN);
 }

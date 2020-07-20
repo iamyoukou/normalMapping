@@ -25,6 +25,44 @@ Before using, we should transform them from tangent space to world space.
 Check [this article](https://learnopengl.com/Advanced-Lighting/Normal-Mapping) to find more information about normal mapping and tangent space.
 The corresponding code for computing normals can be found [here](https://github.com/JoeyDeVries/LearnOpenGL/blob/master/src/6.pbr/1.2.lighting_textured/1.2.pbr.fs).
 
+## Computing normals
+
+In the mentioned article, they use the following code to compute normals in fragment shader.
+
+```
+// from https://github.com/JoeyDeVries/LearnOpenGL
+vec3 getNormalFromMap()
+{
+    vec3 tangentNormal = texture(texNormal, uv).xyz * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(worldPos);
+    vec3 Q2  = dFdy(worldPos);
+    vec2 st1 = dFdx(uv);
+    vec2 st2 = dFdy(uv);
+
+    vec3 n   = normalize(worldN);
+    vec3 t  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 b  = -normalize(cross(n, t));
+    mat3 tbn = mat3(t, b, n);
+
+    return normalize(tbn * tangentNormal);
+}
+```
+Each component of a normal which is sampled from a normal map should be transform to `[-1, 1]` before being used.
+
+`dFdx(.)` and `dFdy(.)` are GLSL functions which can only be used in fragment shader.
+
+For a certain variable `p` at fragment `(x, y)` in the window space,
+`dFdx(p(x, y))` returns `p(x+1, y) - p(x, y)`,
+and `dFdy(p(x, y))` returns `p(x, y+1) - p(x, y)`.
+This makes `Q1, Q2` be the two edges and `st1, st2` be the difference of the texture coordinate in the mentioned article.
+
+The code for computing tangent vector `t` is based on the following fact:
+
+![tangent_vector](./res/tangent_vector.png)
+
+Finally, `tbn * tangentNormal` transforms the normal from tangent space to world (or model) space.  
+
 ## Using halfway vector
 
 When computing specular, using `dot(H, N)` instead of `dot(R, V)` can obtain better result.

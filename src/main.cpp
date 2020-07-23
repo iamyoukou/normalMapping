@@ -5,7 +5,7 @@ GLFWwindow *window;
 Mesh *mesh;
 Quad *quad;
 
-vec3 lightPosition = vec3(3.f, 3.f, 3.f);
+vec3 lightPosition = vec3(10.f, 0.f, 10.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
 
 /* for view control */
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     tempModel = rotate(tempModel, 3.14f / 2.0f, vec3(1, 0, 0));
     tempModel = scale(tempModel, vec3(0.5, 0.5, 0.5));
     mesh->draw(tempModel, view, projection, eyePoint, lightColor, lightPosition,
-               10, 11);
+               13, 14);
 
     // It is better to always use transform matrix
     // to move, rotate and scale objects.
@@ -263,8 +263,8 @@ void initMatrix() {
 }
 
 void initTexture() {
-  mesh->setTexture(mesh->tboBase, 10, "./res/bricks2_basecolor.jpg", FIF_JPEG);
-  mesh->setTexture(mesh->tboNormal, 11, "./res/bricks2_normal.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboBase, 13, "./res/bricks2_basecolor.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboNormal, 14, "./res/bricks2_normal.jpg", FIF_JPEG);
 
   quad->setTexture(quad->tboBase, 10, "./res/bricks2_basecolor.jpg", FIF_JPEG);
   quad->setTexture(quad->tboNormal, 11, "./res/bricks2_normal.jpg", FIF_JPEG);

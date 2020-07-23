@@ -100,8 +100,8 @@ void main(){
     vec3 tanViewDir = normalize(computeTBN(uv) * (eyePoint - worldPos));
     vec2 distortedUv = parallaxOcclusionMapping(uv, tanViewDir);
 
-    if(distortedUv.x > 1.0 || distortedUv.y > 1.0 || distortedUv.x < 0.0 || distortedUv.y < 0.0)
-        discard;
+    // if(distortedUv.x > 1.0 || distortedUv.y > 1.0 || distortedUv.x < 0.0 || distortedUv.y < 0.0)
+    //     discard;
 
     vec4 texColor = texture(texBase, distortedUv) * 0.75;
     vec3 N = getNormalFromMap(distortedUv);

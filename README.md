@@ -69,5 +69,52 @@ When computing specular, using `dot(H, N)` instead of `dot(R, V)` can obtain bet
 `H` is called halfway vector and `H = normalize(L + V)`.
 Here, `N, R, V, L` denotes normal, reflect, view and light vector, respectively.
 
+# Parallax Occlusion Mapping (POM)
+
+Aims to generate faked stereoscopic effect without adding extra vertices.
+
+You can refer to [this article](https://learnopengl.com/Advanced-Lighting/Parallax-Mapping) to get more details, and [here](https://github.com/JoeyDeVries/LearnOpenGL/tree/master/src/5.advanced_lighting/5.3.parallax_occlusion_mapping) is the original code.
+
+Note that if you want to compute TBN matrix in fragment shader,
+you can try the following [code](https://github.com/JoeyDeVries/LearnOpenGL/tree/master/src/5.advanced_lighting/4.normal_mapping):
+
+```
+mat3 computeTBN(vec2 tempUv){
+    vec3 Q1  = dFdx(worldPos);
+    vec3 Q2  = dFdy(worldPos);
+    vec2 st1 = dFdx(tempUv);
+    vec2 st2 = dFdy(tempUv);
+
+    vec3 n   = normalize(worldN);
+    vec3 t  = normalize(Q1*st2.t - Q2*st1.t);
+
+    // in the normal mapping tutorial,
+    // they use vec3 b = -normalize(cross(n, t))
+    // but it generates weird result
+    // vec3 b  = normalize(cross(n, t));
+
+    // or directly compute from the equation
+    vec3 b = normalize(-Q1*st2.s + Q2*st1.s);
+
+    mat3 tbn = mat3(t, b, n);
+
+    return tbn;
+}
+```
+
 # Result
-![normalMapping](./res/result.png)
+## Normal mapping
+
+![normalMapping](./result/result.jpg)
+
+## POM
+
+![POM](./result/result_pom.jpg)
+
+![POM2](./result/result_pom2.jpg)
+
+As shown in the image, we can obtain some faked stereoscopic effect with POM.
+
+However, some texture may not have an obvious effect.
+
+![POM_not_obvious](./result/pom_not_obvious.jpg)

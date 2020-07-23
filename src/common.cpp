@@ -648,3 +648,239 @@ void drawPoints(vector<Point> &pts) { // array data
   glDeleteBuffers(1, &vboColor);
   glDeleteVertexArrays(1, &vao);
 }
+
+Quad::Quad() {
+  initData();
+  initBuffers();
+  initShader();
+  initUniform();
+}
+
+Quad::~Quad() {}
+
+void Quad::initData() {
+  // vertices
+  vtxs.push_back(vec3(-1.0f, 1.0f, 0.0f));
+  vtxs.push_back(vec3(-1.0f, -1.0f, 0.0f));
+  vtxs.push_back(vec3(1.0f, -1.0f, 0.0f));
+  vtxs.push_back(vec3(1.0f, 1.0f, 0.0f));
+
+  // uvs
+  uvs.push_back(vec2(0.0f, 1.0f));
+  uvs.push_back(vec2(0.0f, 0.0f));
+  uvs.push_back(vec2(1.0f, 0.0f));
+  uvs.push_back(vec2(1.0f, 1.0f));
+
+  // normals
+  nms.push_back(vec3(0.0f, 0.0f, 1.0f));
+  nms.push_back(vec3(0.0f, 0.0f, 1.0f));
+  nms.push_back(vec3(0.0f, 0.0f, 1.0f));
+  nms.push_back(vec3(0.0f, 0.0f, 1.0f));
+
+  // tangent for two triangles
+  // triangle 1
+  // ----------
+  vec3 edge1 = vtxs[1] - vtxs[0];
+  vec3 edge2 = vtxs[2] - vtxs[0];
+  vec2 deltaUV1 = uvs[1] - uvs[0];
+  vec2 deltaUV2 = uvs[2] - uvs[0];
+
+  float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+  vec3 tangent1, bitangent1;
+
+  tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+  tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+  tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+  tangent1 = normalize(tangent1);
+  tangents.push_back(tangent1);
+
+  bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+  bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+  bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+  bitangent1 = normalize(bitangent1);
+  bitangents.push_back(bitangent1);
+
+  // triangle 2
+  // ----------
+  edge1 = vtxs[2] - vtxs[0];
+  edge2 = vtxs[3] - vtxs[0];
+  deltaUV1 = uvs[2] - uvs[0];
+  deltaUV2 = uvs[3] - uvs[0];
+
+  f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+  vec3 tangent2, bitangent2;
+
+  tangent2.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+  tangent2.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+  tangent2.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+  tangent2 = normalize(tangent2);
+  tangents.push_back(tangent2);
+
+  bitangent2.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+  bitangent2.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+  bitangent2.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+  bitangent2 = normalize(bitangent2);
+  bitangents.push_back(bitangent2);
+}
+
+void Quad::initShader() {
+  shader = buildShader("./shader/vsPOM.glsl", "./shader/fsPOM.glsl");
+}
+
+void Quad::initUniform() {
+  uniModel = myGetUniformLocation(shader, "M");
+  uniView = myGetUniformLocation(shader, "V");
+  uniProjection = myGetUniformLocation(shader, "P");
+  uniEyePoint = myGetUniformLocation(shader, "eyePoint");
+  uniLightColor = myGetUniformLocation(shader, "lightColor");
+  uniLightPosition = myGetUniformLocation(shader, "lightPosition");
+  uniTexBase = myGetUniformLocation(shader, "texBase");
+  uniTexNormal = myGetUniformLocation(shader, "texNormal");
+  uniTexHeight = myGetUniformLocation(shader, "texHeight");
+}
+
+void Quad::initBuffers() {
+  GLfloat aVtxCoords[18] = {
+      // triangle1
+      vtxs[0].x,
+      vtxs[0].y,
+      vtxs[0].z,
+      vtxs[1].x,
+      vtxs[1].y,
+      vtxs[1].z,
+      vtxs[2].x,
+      vtxs[2].y,
+      vtxs[2].z,
+      // triangle 2
+      vtxs[0].x,
+      vtxs[0].y,
+      vtxs[0].z,
+      vtxs[2].x,
+      vtxs[2].y,
+      vtxs[2].z,
+      vtxs[3].x,
+      vtxs[3].y,
+      vtxs[3].z,
+  };
+
+  GLfloat aUvs[12] = {
+      // triangel 1
+      uvs[0].x, uvs[0].y, uvs[1].x, uvs[1].y, uvs[2].x, uvs[2].y,
+      // triangle 2
+      uvs[0].x, uvs[0].y, uvs[2].x, uvs[2].y, uvs[3].x, uvs[3].y};
+
+  GLfloat aNormals[18] = {
+      // triangle1
+      nms[0].x,
+      nms[0].y,
+      nms[0].z,
+      nms[1].x,
+      nms[1].y,
+      nms[1].z,
+      nms[2].x,
+      nms[2].y,
+      nms[2].z,
+      // triangle 2
+      nms[0].x,
+      nms[0].y,
+      nms[0].z,
+      nms[2].x,
+      nms[2].y,
+      nms[2].z,
+      nms[3].x,
+      nms[3].y,
+      nms[3].z,
+  };
+
+  GLfloat aTangents[6] = {// triangle 1
+                          tangents[0].x, tangents[0].y, tangents[0].z,
+                          // triangle 2
+                          tangents[1].x, tangents[1].y, tangents[1].z};
+  GLfloat aBitangents[6] = {// triangle 1
+                            bitangents[0].x, bitangents[0].y, bitangents[0].z,
+                            // triangle 2
+                            bitangents[1].x, bitangents[1].y, bitangents[1].z};
+
+  // vao
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+
+  // vbo for vertex
+  glGenBuffers(1, &vboVtxs);
+  glBindBuffer(GL_ARRAY_BUFFER, vboVtxs);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 18, aVtxCoords,
+               GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(0);
+
+  // vbo for texture
+  glGenBuffers(1, &vboUvs);
+  glBindBuffer(GL_ARRAY_BUFFER, vboUvs);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 12, aUvs, GL_STATIC_DRAW);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(1);
+
+  // vbo for normal
+  glGenBuffers(1, &vboNormals);
+  glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 18, aNormals, GL_STATIC_DRAW);
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(2);
+
+  // vbo for tangents
+  glGenBuffers(1, &vboTangents);
+  glBindBuffer(GL_ARRAY_BUFFER, vboTangents);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6, aTangents, GL_STATIC_DRAW);
+  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(3);
+
+  // vbo for bitangents
+  glGenBuffers(1, &vboBitangents);
+  glBindBuffer(GL_ARRAY_BUFFER, vboBitangents);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6, aBitangents,
+               GL_STATIC_DRAW);
+  glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(4);
+}
+
+void Quad::setTexture(GLuint &tbo, int texUnit, const string texDir,
+                      FREE_IMAGE_FORMAT imgType) {
+  glActiveTexture(GL_TEXTURE0 + texUnit);
+
+  FIBITMAP *texImage =
+      FreeImage_ConvertTo24Bits(FreeImage_Load(imgType, texDir.c_str()));
+
+  glGenTextures(1, &tbo);
+  glBindTexture(GL_TEXTURE_2D, tbo);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texImage),
+               FreeImage_GetHeight(texImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
+               (void *)FreeImage_GetBits(texImage));
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  // release
+  FreeImage_Unload(texImage);
+}
+
+void Quad::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
+                vec3 lightPosition, int unitBaseColor, int unitNormal,
+                int unitHeight) {
+  glUseProgram(shader);
+
+  glUniformMatrix4fv(uniModel, 1, GL_FALSE, value_ptr(M));
+  glUniformMatrix4fv(uniView, 1, GL_FALSE, value_ptr(V));
+  glUniformMatrix4fv(uniProjection, 1, GL_FALSE, value_ptr(P));
+
+  glUniform3fv(uniEyePoint, 1, value_ptr(eye));
+
+  glUniform3fv(uniLightColor, 1, value_ptr(lightColor));
+  glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
+
+  glUniform1i(uniTexBase, unitBaseColor); // change base color
+  glUniform1i(uniTexNormal, unitNormal);  // change normal
+  glUniform1i(uniTexHeight, unitHeight);  // change height map
+
+  glBindVertexArray(vao);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+}

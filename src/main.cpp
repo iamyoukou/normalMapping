@@ -3,20 +3,21 @@
 GLFWwindow *window;
 
 Mesh *mesh;
+Quad *quad;
 
-vec3 lightPosition = vec3(10.f, 3.f, 10.f);
+vec3 lightPosition = vec3(3.f, 3.f, 3.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
 
 /* for view control */
-float verticalAngle = -1.95439;
-float horizontalAngle = 3.98102;
+float verticalAngle = -1.74068;
+float horizontalAngle = 0.96649;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
 float nearPlane = 0.01f, farPlane = 1000.f;
 
 mat4 model, view, projection;
-vec3 eyePoint = vec3(-7.735105, 6.012015, -8.435227);
+vec3 eyePoint = vec3(1.294377, 0.265419, 2.097456);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));
@@ -42,6 +43,7 @@ int main(int argc, char **argv) {
 
   // prepare mesh data
   mesh = new Mesh("./mesh/grid.obj");
+  quad = new Quad();
 
   initTexture();
   initMatrix();
@@ -66,15 +68,24 @@ int main(int argc, char **argv) {
     // view control
     computeMatricesFromInputs();
 
+    mat4 tempModel = translate(mat4(1.f), vec3(2.5f, 0.f, 0.f));
+    tempModel = rotate(tempModel, 3.14f / 2.0f, vec3(1, 0, 0));
+    tempModel = scale(tempModel, vec3(0.5, 0.5, 0.5));
+    mesh->draw(tempModel, view, projection, eyePoint, lightColor, lightPosition,
+               10, 11);
+
     // It is better to always use transform matrix
     // to move, rotate and scale objects.
     // This can avoid updating vertex buffers.
-    for (int r = -2; r < 3; r++) {
-      for (int c = -2; c < 3; c++) {
-        mat4 tempModel = translate(mat4(1.f), vec3(-4.f * r, 0.f, 4.f * c));
+    for (int r = 0; r < 1; r++) {
+      for (int c = 0; c < 1; c++) {
+        tempModel = translate(mat4(1.f), vec3(-4.f * r, 0.f, 4.f * c));
 
-        mesh->draw(tempModel, view, projection, eyePoint, lightColor,
-                   lightPosition, 10, 11);
+        // mesh->draw(tempModel, view, projection, eyePoint, lightColor,
+        //            lightPosition, 10, 11);
+
+        quad->draw(tempModel, view, projection, eyePoint, lightColor,
+                   lightPosition, 10, 11, 12);
       }
     }
 
@@ -251,8 +262,12 @@ void initMatrix() {
 }
 
 void initTexture() {
-  mesh->setTexture(mesh->tboBase, 10, "./res/stone_basecolor.jpg", FIF_JPEG);
-  mesh->setTexture(mesh->tboNormal, 11, "./res/stone_normal.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboBase, 10, "./res/bricks2_basecolor.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboNormal, 11, "./res/bricks2_normal.jpg", FIF_JPEG);
+
+  quad->setTexture(quad->tboBase, 10, "./res/bricks2_basecolor.jpg", FIF_JPEG);
+  quad->setTexture(quad->tboNormal, 11, "./res/bricks2_normal.jpg", FIF_JPEG);
+  quad->setTexture(quad->tboHeight, 12, "./res/bricks2_height.jpg", FIF_JPEG);
 }
 
 void releaseResource() {
@@ -260,4 +275,5 @@ void releaseResource() {
   FreeImage_DeInitialise();
 
   delete mesh;
+  delete quad;
 }

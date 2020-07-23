@@ -58,5 +58,5 @@ void main(){
     outputColor += diffuse * abs(dot(N, L)) * attenuation;
     outputColor += specular * pow(clamp(dot(H, N), 0, 1), alpha) * attenuation;
 
-    outputColor += texColor * 0.75;
+    outputColor += texColor;
 }

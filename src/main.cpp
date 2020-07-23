@@ -2,7 +2,7 @@
 
 GLFWwindow *window;
 
-Mesh *grid, *grid2;
+Mesh *mesh;
 
 vec3 lightPosition = vec3(10.f, 3.f, 10.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
@@ -16,7 +16,6 @@ float mouseSpeed = 0.005f;
 float nearPlane = 0.01f, farPlane = 1000.f;
 
 mat4 model, view, projection;
-mat4 model2;
 vec3 eyePoint = vec3(-7.735105, 6.012015, -8.435227);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
@@ -42,8 +41,7 @@ int main(int argc, char **argv) {
   initOthers();
 
   // prepare mesh data
-  grid = new Mesh("./mesh/grid.obj");
-  grid2 = new Mesh("./mesh/grid.obj");
+  mesh = new Mesh("./mesh/grid.obj");
 
   initTexture();
   initMatrix();
@@ -68,11 +66,6 @@ int main(int argc, char **argv) {
     // view control
     computeMatricesFromInputs();
 
-    // draw mesh
-    // grid->draw(model, view, projection, eyePoint, lightColor, lightPosition,
-    // 12,
-    //            13);
-
     // It is better to always use transform matrix
     // to move, rotate and scale objects.
     // This can avoid updating vertex buffers.
@@ -80,8 +73,8 @@ int main(int argc, char **argv) {
       for (int c = -2; c < 3; c++) {
         mat4 tempModel = translate(mat4(1.f), vec3(-4.f * r, 0.f, 4.f * c));
 
-        grid2->draw(tempModel, view, projection, eyePoint, lightColor,
-                    lightPosition, 10, 11);
+        mesh->draw(tempModel, view, projection, eyePoint, lightColor,
+                   lightPosition, 10, 11);
       }
     }
 
@@ -255,22 +248,16 @@ void initMatrix() {
   view = lookAt(eyePoint, eyeDirection, up);
   projection = perspective(initialFoV, 1.f * WINDOW_WIDTH / WINDOW_HEIGHT,
                            nearPlane, farPlane);
-
-  model2 = translate(mat4(1.f), vec3(5.f, 0.f, 0.f));
 }
 
 void initTexture() {
-  grid->setTexture(grid->tboBase, 10, "./res/rock_basecolor.jpg", FIF_JPEG);
-  grid->setTexture(grid->tboNormal, 11, "./res/rock_normal.jpg", FIF_JPEG);
-
-  grid2->setTexture(grid2->tboBase, 12, "./res/stone_basecolor.jpg", FIF_JPEG);
-  grid2->setTexture(grid2->tboNormal, 13, "./res/stone_normal.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboBase, 10, "./res/stone_basecolor.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboNormal, 11, "./res/stone_normal.jpg", FIF_JPEG);
 }
 
 void releaseResource() {
   glfwTerminate();
   FreeImage_DeInitialise();
 
-  delete grid;
-  delete grid2;
+  delete mesh;
 }

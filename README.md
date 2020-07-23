@@ -66,7 +66,7 @@ Finally, `tbn * tangentNormal` transforms the normal from tangent space to world
 ## Using halfway vector
 
 When computing specular, using `dot(H, N)` instead of `dot(R, V)` can obtain better result.
-`H` is called halfway vector and `H = normalize(L, V)`.
+`H` is called halfway vector and `H = normalize(L + V)`.
 Here, `N, R, V, L` denotes normal, reflect, view and light vector, respectively.
 
 # Result

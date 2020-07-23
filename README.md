@@ -117,4 +117,9 @@ As shown in the image, we can obtain some faked stereoscopic effect with POM.
 
 However, some texture may not have an obvious effect.
 
-![POM_not_obvious](./result/pom_not_obvious.jpg)
+![pom_not_obvious](./result/pom_not_obvious.jpg)
+
+As pointed out in the tutorial,
+it is not suitable for a non-quad surface.
+
+![pom_not_suitable](./result/pom_not_suitable.jpg)

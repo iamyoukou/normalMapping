@@ -9,15 +9,15 @@ vec3 lightPosition = vec3(3.f, 3.f, 3.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
 
 /* for view control */
-float verticalAngle = -1.74068;
-float horizontalAngle = 0.96649;
+float verticalAngle = -1.50068;
+float horizontalAngle = 2.44649;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
 float nearPlane = 0.01f, farPlane = 1000.f;
 
 mat4 model, view, projection;
-vec3 eyePoint = vec3(1.294377, 0.265419, 2.097456);
+vec3 eyePoint = vec3(-1.487410, -0.218087, 1.602862);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));

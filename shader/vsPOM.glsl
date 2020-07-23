@@ -8,8 +8,8 @@ layout( location = 4 ) in vec3 vtxB;
 out vec2 uv;
 out vec3 worldPos;
 out vec3 worldN;
-out vec3 tanViewPos;
-out vec3 tanFragPos;
+// out vec3 tanViewPos;
+// out vec3 tanFragPos;
 
 uniform mat4 M, V, P;
 uniform vec3 lightPosition;
@@ -26,11 +26,11 @@ void main(){
     worldN = (vec4(vtxN, 1.0) * inverse(M)).xyz;
     worldN = normalize(worldN);
 
-    vec3 T = normalize(M * vec4(vtxT, 1.0)).xyz;
-    vec3 B = normalize(M * vec4(vtxB, 1.0)).xyz;
-    vec3 N = normalize(M * vec4(vtxN, 1.0)).xyz;
-    mat3 TBN = transpose(mat3(T, B, N));
-
-    tanViewPos = TBN * eyePoint;
-    tanFragPos = TBN * worldPos;
+    // vec3 T = normalize(M * vec4(vtxT, 1.0)).xyz;
+    // vec3 B = normalize(M * vec4(vtxB, 1.0)).xyz;
+    // vec3 N = normalize(M * vec4(vtxN, 1.0)).xyz;
+    // mat3 TBN = transpose(mat3(T, B, N));
+    //
+    // tanViewPos = TBN * eyePoint;
+    // tanFragPos = TBN * worldPos;
 }

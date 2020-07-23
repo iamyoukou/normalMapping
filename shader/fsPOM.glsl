@@ -18,10 +18,8 @@ out vec4 outputColor;
 // i.e. transform it from tangent space to world space
 // the code is from https://github.com/JoeyDeVries/LearnOpenGL
 // check the theory at https://learnopengl.com/Advanced-Lighting/Normal-Mapping
-vec3 getNormalFromMap(vec2 tempUv)
-{
-    vec3 tangentNormal = texture(texNormal, tempUv).xyz * 2.0 - 1.0;
-
+//----------------------------------------------------------------
+mat3 computeTBN(vec2 tempUv){
     vec3 Q1  = dFdx(worldPos);
     vec3 Q2  = dFdy(worldPos);
     vec2 st1 = dFdx(tempUv);
@@ -29,13 +27,31 @@ vec3 getNormalFromMap(vec2 tempUv)
 
     vec3 n   = normalize(worldN);
     vec3 t  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 b  = -normalize(cross(n, t));
+
+    // in the tutorial, they use vec3 b = -normalize(cross(n, t))
+    // but it generates weird result
+    // vec3 b  = normalize(cross(n, t));
+
+    vec3 b = normalize(-Q1*st2.s + Q2*st1.s);
+
     mat3 tbn = mat3(t, b, n);
+
+    return tbn;
+}
+
+vec3 getNormalFromMap(vec2 tempUv)
+{
+    vec3 tangentNormal = texture(texNormal, tempUv).xyz * 2.0 - 1.0;
+
+    mat3 tbn = computeTBN(tempUv);
 
     return normalize(tbn * tangentNormal);
 }
+//----------------------------------------------------------------
 
-vec2 parallaxMapping(vec2 texCoords, vec3 viewDir)
+// refer to https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
+// code: https://github.com/JoeyDeVries/LearnOpenGL/tree/master/src/5.advanced_lighting/5.3.parallax_occlusion_mapping
+vec2 parallaxOcclusionMapping(vec2 texCoords, vec3 viewDir)
 {
     // number of depth layers
     const float minLayers = 8;
@@ -80,9 +96,9 @@ vec2 parallaxMapping(vec2 texCoords, vec3 viewDir)
 }
 
 void main(){
-    vec3 tanViewDir = normalize(tanViewPos - tanFragPos);
-    // vec3 tanViewDir = normalize(eyePoint - worldPos);
-    vec2 distortedUv = parallaxMapping(uv, tanViewDir);
+    // vec3 tanViewDir = normalize(tanViewPos - tanFragPos);
+    vec3 tanViewDir = normalize(computeTBN(uv) * (eyePoint - worldPos));
+    vec2 distortedUv = parallaxOcclusionMapping(uv, tanViewDir);
 
     if(distortedUv.x > 1.0 || distortedUv.y > 1.0 || distortedUv.x < 0.0 || distortedUv.y < 0.0)
         discard;

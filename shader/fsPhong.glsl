@@ -26,7 +26,13 @@ vec3 getNormalFromMap()
 
     vec3 n   = normalize(worldN);
     vec3 t  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 b  = -normalize(cross(n, t));
+
+    // in the tutorial, they use vec3 b = -normalize(cross(n, t))
+    // but it generates weird result
+    // vec3 b  = normalize(cross(n, t));
+
+    vec3 b = normalize(-Q1*st2.s + Q2*st1.s);
+    
     mat3 tbn = mat3(t, b, n);
 
     return normalize(tbn * tangentNormal);

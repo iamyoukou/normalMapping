@@ -80,6 +80,7 @@ int main(int argc, char **argv) {
     for (int r = 0; r < 1; r++) {
       for (int c = 0; c < 1; c++) {
         tempModel = translate(mat4(1.f), vec3(-4.f * r, 0.f, 4.f * c));
+        // tempModel = rotate(tempModel, -3.14f / 2.0f, vec3(1, 0, 0));
 
         // mesh->draw(tempModel, view, projection, eyePoint, lightColor,
         //            lightPosition, 10, 11);

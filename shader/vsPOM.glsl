@@ -8,7 +8,6 @@ layout( location = 4 ) in vec3 vtxB;
 out vec2 uv;
 out vec3 worldPos;
 out vec3 worldN;
-out vec3 tanLightPos;
 out vec3 tanViewPos;
 out vec3 tanFragPos;
 
@@ -32,7 +31,6 @@ void main(){
     vec3 N = normalize(M * vec4(vtxN, 1.0)).xyz;
     mat3 TBN = transpose(mat3(T, B, N));
 
-    tanLightPos = TBN * lightPosition;
     tanViewPos = TBN * eyePoint;
     tanFragPos = TBN * worldPos;
 }

@@ -685,19 +685,13 @@ void Quad::initData() {
   vec2 deltaUV1 = uvs[1] - uvs[0];
   vec2 deltaUV2 = uvs[2] - uvs[0];
 
-  float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
   vec3 tangent1, bitangent1;
 
-  tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-  tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-  tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+  tangent1 = deltaUV2.y * edge1 - deltaUV1.y * edge2;
   tangent1 = normalize(tangent1);
   tangents.push_back(tangent1);
 
-  bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
-  bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
-  bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+  bitangent1 = -deltaUV2.x * edge1 + deltaUV1.x * edge2;
   bitangent1 = normalize(bitangent1);
   bitangents.push_back(bitangent1);
 
@@ -708,19 +702,13 @@ void Quad::initData() {
   deltaUV1 = uvs[2] - uvs[0];
   deltaUV2 = uvs[3] - uvs[0];
 
-  f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
   vec3 tangent2, bitangent2;
 
-  tangent2.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-  tangent2.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-  tangent2.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+  tangent2 = deltaUV2.y * edge1 - deltaUV1.y * edge2;
   tangent2 = normalize(tangent2);
   tangents.push_back(tangent2);
 
-  bitangent2.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
-  bitangent2.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
-  bitangent2.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+  bitangent2 = -deltaUV2.x * edge1 + deltaUV1.x * edge2;
   bitangent2 = normalize(bitangent2);
   bitangents.push_back(bitangent2);
 }
@@ -794,14 +782,21 @@ void Quad::initBuffers() {
       nms[3].z,
   };
 
-  GLfloat aTangents[6] = {// triangle 1
-                          tangents[0].x, tangents[0].y, tangents[0].z,
-                          // triangle 2
-                          tangents[1].x, tangents[1].y, tangents[1].z};
-  GLfloat aBitangents[6] = {// triangle 1
-                            bitangents[0].x, bitangents[0].y, bitangents[0].z,
-                            // triangle 2
-                            bitangents[1].x, bitangents[1].y, bitangents[1].z};
+  GLfloat aTangents[18] = {
+      // triangle 1
+      tangents[0].x, tangents[0].y, tangents[0].z, tangents[0].x, tangents[0].y,
+      tangents[0].z, tangents[0].x, tangents[0].y, tangents[0].z,
+      // triangle 2
+      tangents[1].x, tangents[1].y, tangents[1].z, tangents[1].x, tangents[1].y,
+      tangents[1].z, tangents[1].x, tangents[1].y, tangents[1].z};
+  GLfloat aBitangents[18] = {// triangle 1
+                             bitangents[0].x, bitangents[0].y, bitangents[0].z,
+                             bitangents[0].x, bitangents[0].y, bitangents[0].z,
+                             bitangents[0].x, bitangents[0].y, bitangents[0].z,
+                             // triangle 2
+                             bitangents[1].x, bitangents[1].y, bitangents[1].z,
+                             bitangents[1].x, bitangents[1].y, bitangents[1].z,
+                             bitangents[1].x, bitangents[1].y, bitangents[1].z};
 
   // vao
   glGenVertexArrays(1, &vao);
@@ -832,14 +827,15 @@ void Quad::initBuffers() {
   // vbo for tangents
   glGenBuffers(1, &vboTangents);
   glBindBuffer(GL_ARRAY_BUFFER, vboTangents);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6, aTangents, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 18, aTangents,
+               GL_STATIC_DRAW);
   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(3);
 
   // vbo for bitangents
   glGenBuffers(1, &vboBitangents);
   glBindBuffer(GL_ARRAY_BUFFER, vboBitangents);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6, aBitangents,
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 18, aBitangents,
                GL_STATIC_DRAW);
   glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(4);

@@ -3,9 +3,9 @@
 in vec2 uv;
 in vec3 worldPos;
 in vec3 worldN;
-in vec3 tanLightPos;
 in vec3 tanViewPos;
 in vec3 tanFragPos;
+// in vec3 tanViewDir;
 
 uniform sampler2D texBase, texNormal, texHeight;
 uniform vec3 lightColor;
@@ -81,6 +81,7 @@ vec2 parallaxMapping(vec2 texCoords, vec3 viewDir)
 
 void main(){
     vec3 tanViewDir = normalize(tanViewPos - tanFragPos);
+    // vec3 tanViewDir = normalize(eyePoint - worldPos);
     vec2 distortedUv = parallaxMapping(uv, tanViewDir);
 
     if(distortedUv.x > 1.0 || distortedUv.y > 1.0 || distortedUv.x < 0.0 || distortedUv.y < 0.0)

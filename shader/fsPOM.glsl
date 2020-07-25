@@ -95,6 +95,34 @@ vec2 parallaxOcclusionMapping(vec2 texCoords, vec3 viewDir)
     return finalTexCoords;
 }
 
+// hard shadow: https://stackoverflow.com/a/55091654/3584162
+float calcShadow(vec2 texCoords, vec3 lightDir)
+{
+    float minLayers = 0;
+    float maxLayers = 32;
+    float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), lightDir)));
+    float heightScale = 0.1f;
+
+    vec2 currentTexCoords = texCoords;
+    float currentDepthMapValue = texture(texHeight, currentTexCoords).r;
+    float currentLayerDepth = currentDepthMapValue;
+
+    float layerDepth = 1.0 / numLayers;
+    vec2 P = lightDir.xy / lightDir.z * heightScale;
+    vec2 deltaTexCoords = P / numLayers;
+
+    while (currentLayerDepth <= currentDepthMapValue && currentLayerDepth > 0.0)
+    {
+        currentTexCoords += deltaTexCoords;
+        currentDepthMapValue = texture(texHeight, currentTexCoords).r;
+        currentLayerDepth -= layerDepth;
+    }
+
+    float r = currentLayerDepth > currentDepthMapValue ? 0.0 : 1.0;
+
+    return r;
+}
+
 void main(){
     vec3 tanViewDir = normalize(computeTBN(uv) * (eyePoint - worldPos));
     vec2 distortedUv = parallaxOcclusionMapping(uv, tanViewDir);
@@ -123,7 +151,10 @@ void main(){
     float dc = max(dot(N, L), 0.0);
     float sc = pow(max(dot(H, N), 0.0), alpha);
 
+    vec3 tanLightDir = normalize(computeTBN(uv) * (lightPosition - worldPos));
+    float shadow = calcShadow(distortedUv, tanLightDir);
+
     outputColor += ambient;
-    outputColor += diffuse * dc * attenuation;
-    outputColor += specular * sc * attenuation;
+    outputColor += diffuse * dc * attenuation * shadow;
+    outputColor += specular * sc * attenuation * shadow;
 }

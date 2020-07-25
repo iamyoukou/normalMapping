@@ -96,7 +96,6 @@ vec2 parallaxOcclusionMapping(vec2 texCoords, vec3 viewDir)
 }
 
 void main(){
-    // vec3 tanViewDir = normalize(tanViewPos - tanFragPos);
     vec3 tanViewDir = normalize(computeTBN(uv) * (eyePoint - worldPos));
     vec2 distortedUv = parallaxOcclusionMapping(uv, tanViewDir);
 
@@ -104,31 +103,27 @@ void main(){
     //     discard;
 
     vec4 texColor = texture(texBase, distortedUv) * 0.75;
+
     vec3 N = getNormalFromMap(distortedUv);
-
-    // vec3 N = getNormalFromMap(uv);
-    //
-    // vec4 texColor = texture(texBase, uv) * 0.75;
-
-    float ka = 0.05, kd = 0.1, ks = 0.85;
-    float alpha = 50;
-
-    outputColor = vec4(0);
-
-    vec4 ambient = vec4(lightColor * ka, 1.0);
-    vec4 diffuse = vec4(lightColor * kd, 1.0);
-    vec4 specular = vec4(lightColor * ks, 1.0);
-
     vec3 L = normalize(lightPosition - worldPos);
     vec3 V = normalize(eyePoint - worldPos);
     vec3 H = normalize(L + V);
 
+    float ka = 0.2, kd = 0.75, ks = 0.55;
+    float alpha = 20;
+
+    outputColor = vec4(0);
+
+    vec4 ambient = texColor * ka;
+    vec4 diffuse = texColor * kd;
+    vec4 specular = vec4(lightColor * ks, 1.0);
+
     float dist = length(L);
     float attenuation = 1.0 / (dist * dist);
+    float dc = max(dot(N, L), 0.0);
+    float sc = pow(max(dot(H, N), 0.0), alpha);
 
     outputColor += ambient;
-    outputColor += diffuse * abs(dot(N, L)) * attenuation;
-    outputColor += specular * pow(clamp(dot(H, N), 0, 1), alpha) * attenuation;
-
-    outputColor += texColor;
+    outputColor += diffuse * dc * attenuation;
+    outputColor += specular * sc * attenuation;
 }

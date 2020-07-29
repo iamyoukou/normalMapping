@@ -54,8 +54,8 @@ vec3 getNormalFromMap(vec2 tempUv)
 vec2 parallaxOcclusionMapping(vec2 texCoords, vec3 viewDir)
 {
     // number of depth layers
-    const float minLayers = 8;
-    const float maxLayers = 32;
+    const float minLayers = 8.0;
+    const float maxLayers = 32.0;
     float heightScale = 0.1;
 
     float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));
@@ -96,9 +96,12 @@ vec2 parallaxOcclusionMapping(vec2 texCoords, vec3 viewDir)
 }
 
 // hard shadow: https://stackoverflow.com/a/55091654/3584162
+// soft shadow: https://github.com/piellardj/parallax-mapping/blob/master/shaders/parallax.frag (better effect)
 float calcShadow(vec2 texCoords, vec3 lightDir)
 {
-    float minLayers = 0;
+    float selfShadowFactor = 1.0f;
+
+    float minLayers = 8;
     float maxLayers = 32;
     float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), lightDir)));
     float heightScale = 0.1f;
@@ -111,16 +114,20 @@ float calcShadow(vec2 texCoords, vec3 lightDir)
     vec2 P = lightDir.xy / lightDir.z * heightScale;
     vec2 deltaTexCoords = P / numLayers;
 
-    while (currentLayerDepth <= currentDepthMapValue && currentLayerDepth > 0.0)
+    while (currentLayerDepth > 0.0)
     {
         currentTexCoords += deltaTexCoords;
         currentDepthMapValue = texture(texHeight, currentTexCoords).r;
         currentLayerDepth -= layerDepth;
+
+        if(currentDepthMapValue < currentLayerDepth){
+            selfShadowFactor -= (currentLayerDepth - currentDepthMapValue) / layerDepth;
+        }
     }
 
-    float r = currentLayerDepth > currentDepthMapValue ? 0.0 : 1.0;
+    selfShadowFactor = max(0.0, selfShadowFactor);
 
-    return r;
+    return selfShadowFactor;
 }
 
 void main(){

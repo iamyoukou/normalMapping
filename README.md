@@ -102,24 +102,75 @@ mat3 computeTBN(vec2 tempUv){
 }
 ```
 
+A limitation is that when the angle between the surface normal and the view direction increases,
+artifacts may become obvious.
+
+## Self-shadowing
+
+Essentially, it is an inverse of POM (refer to [1] for more information).
+
+Start from the intersection point `B` found in POM,
+go along the `B` to light direction with some fixed step,
+find whether there is an intersection `C` at the distorted surface.
+
+![shadow](./res/shadow.jpg)
+
+```
+float shadowFactor = hasIntersection ? 0.0 : 1.0;
+finalColor = ambient + (diffuse + specular) * shadowFactor;
+```
+
+The above code results in a hard shadow.
+You can refer to [this thread](https://stackoverflow.com/questions/55089830/adding-shadows-to-parallax-occlusion-map) to find more details.
+
+[1] provides a method to compute soft shadow,
+but it is for an area light source.
+[piellardj](https://github.com/piellardj/parallax-mapping/blob/master/shaders/parallax.frag)
+has modified it to handle a point light source:
+
+1. Set the `shadowFactor` to `1.0`.
+
+2. During each iteration,
+compute the difference of depth value `ΔD = currentLayerDepth - currentDepthMapValue`.
+Here, `currentLayerDepth` and `currentDepthMapValue` correspond to the green and blue point, respectively.
+
+3. Compute an attenuation ratio `atten = ΔD / DL`, then `shadowFactor -= atten`.
+
+4. After all the iterations, `atten = max(atten, 0.0)` to avoid a negative value.
+
+![softShadow](./res/softShadow.jpg)
+
+Intuitively, each `shadowFactor -= atten` represents one obstacle.
+More obstacles result in more shadows.
+With this algorithm, we can obtain a gradient of shadow (i.e. the soft shadow).
+
 # Result
-## Normal mapping
+
+Normal mapping with parallax occlusion mapping and self-shadowing.
 
 ![normalMapping](./result/result.jpg)
-
-## POM
 
 ![POM](./result/result_pom.jpg)
 
 ![POM2](./result/result_pom2.jpg)
 
-As shown in the image, we can obtain some faked stereoscopic effect with POM.
+![POM3](./result/result_pom3.jpg)
 
-However, some texture may not have an obvious effect.
-
-![pom_not_obvious](./result/pom_not_obvious.jpg)
+As shown in the image,
+we can obtain some faked stereoscopic effect with POM and self-shadowing.
 
 As pointed out in the tutorial,
 it is not suitable for a non-quad surface.
+And as the number of vertices increases,
+the computation of POM and self-shadowing may become too heavy.
 
 ![pom_not_suitable](./result/pom_not_suitable.jpg)
+
+# Problem
+
+Currently, the code I use for POM and soft-shadowing is very heavy.
+If I use more than `3x3` quads, I will get a very low `FPS`.
+
+# Reference
+
+[1] Tatarchuk, Natalya. "Dynamic parallax occlusion mapping with approximate soft shadows." Proceedings of the 2006 symposium on Interactive 3D graphics and games. 2006.

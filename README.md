@@ -102,9 +102,6 @@ mat3 computeTBN(vec2 tempUv){
 }
 ```
 
-A limitation is that when the angle between the surface normal and the view direction increases,
-artifacts may become obvious.
-
 ## Self-shadowing
 
 Essentially, it is an inverse of POM (refer to [1] for more information).
@@ -148,8 +145,6 @@ With this algorithm, we can obtain a gradient of shadow (i.e. the soft shadow).
 
 Normal mapping with parallax occlusion mapping and self-shadowing.
 
-![normalMapping](./result/result.jpg)
-
 ![POM](./result/result_pom.jpg)
 
 ![POM2](./result/result_pom2.jpg)
@@ -159,17 +154,26 @@ Normal mapping with parallax occlusion mapping and self-shadowing.
 As shown in the image,
 we can obtain some faked stereoscopic effect with POM and self-shadowing.
 
-As pointed out in the tutorial,
-it is not suitable for a non-quad surface.
-And as the number of vertices increases,
-the computation of POM and self-shadowing may become too heavy.
+# Limitation and problem
+
+## Restricted view direction
+
+When the view direction moves from parallel (left) to nearly perpendicular (right) to the surface normal, artifacts gradually appear.
+
+![normalMapping](./result/result.jpg)
+
+## Not suitable for non-quad surface
+
+This is pointed out in the tutorial.
 
 ![pom_not_suitable](./result/pom_not_suitable.jpg)
 
-# Problem
+## Performance
 
-Currently, the code I use for POM and soft-shadowing is very heavy.
-If I use more than `3x3` quads, I will get a very low `FPS`.
+Currently, I use `minLayers = 8, maxLayers = 32` for POM and self-shadowing.
+With this configuration, if I use more than `3x3` quads, I will get a very low `FPS`.
+Although decreasing `minLayers` and `maxLayers` may somewhat improve performance,
+more artifacts will appear.
 
 # Reference
 

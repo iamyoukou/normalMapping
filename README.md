@@ -131,7 +131,7 @@ has modified it to handle a point light source:
 compute the difference of depth value `ΔD = currentLayerDepth - currentDepthMapValue`.
 Here, `currentLayerDepth` and `currentDepthMapValue` correspond to the green and blue point, respectively.
 
-3. Compute an attenuation ratio `atten = ΔD / DL`, then `shadowFactor -= atten`.
+3. Compute an attenuation ratio `atten = ΔD / ΔL`, then `shadowFactor -= atten`.
 
 4. After all the iterations, `atten = max(atten, 0.0)` to avoid a negative value.
 

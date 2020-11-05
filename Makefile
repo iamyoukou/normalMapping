@@ -1,4 +1,4 @@
-CXX=llvm-g++
+CXX=g++-10
 COMPILE=-g -c -std=c++17 \
 -I/usr/local/Cellar/glew/2.1.0_1/include \
 -I/usr/local/Cellar/glfw/3.3.2/include \
@@ -14,16 +14,15 @@ SRC_DIR=/Users/YJ-work/cpp/myGL_glfw/normalMapping/src
 all: main
 
 main: main.o common.o
-	$(CXX) $(LINK) $^ -o main
-	rm -f *.o
+	$(CXX) $(LINK) $^ -o $@
 
 main.o: $(SRC_DIR)/main.cpp
-	$(CXX) $(COMPILE) $^ -o main.o
+	$(CXX) $(COMPILE) $^ -o $@
 
 common.o: $(SRC_DIR)/common.cpp
-	$(CXX) $(COMPILE) $^ -o common.o
+	$(CXX) $(COMPILE) $^ -o $@
 
-.PHONY: clean
+.PHONY: cleanObj
 
-clean:
-	rm -vf main
+cleanObj:
+	rm -vf *.o

@@ -110,6 +110,5 @@ GLint myGetUniformLocation(GLuint &, string);
 GLuint buildShader(string, string);
 GLuint compileShader(string, GLenum);
 GLuint linkShader(GLuint, GLuint);
-void updateMesh(Mesh &);
 void drawBox(vec3, vec3);
 void drawPoints(vector<Point> &);

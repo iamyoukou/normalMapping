@@ -7,16 +7,27 @@ When computing the color for a fragment,
 we use the normal from the table instead of the interpolated vertex normal.
 As a result, we get a fake smooth surface with relatively low cost.
 
+# Result
+
+Normal mapping with parallax occlusion mapping and self-shadowing.
+
+![POM](./result/result_pom.jpg)
+
+![POM2](./result/result_pom2.jpg)
+
+![POM3](./result/result_pom3.jpg)
+
+As shown in the image,
+we can obtain some faked stereoscopic effect with POM and self-shadowing.
+
 # Note
 
 ## A common mistake when computing normals
 
 I have used the following code to compute normals:
 
-```
-normal = texture(normalMap, TexCoords).rgb;
-normal = normalize(normal * 2.0 - 1.0);
-```
+    normal = texture(normalMap, TexCoords).rgb;
+    normal = normalize(normal * 2.0 - 1.0);
 
 and it produced an incorrect result.
 It ignored the fact that normal maps are defined in tangent space.
@@ -29,25 +40,24 @@ The corresponding code for computing normals can be found [here](https://github.
 
 In the mentioned article, they use the following code to compute normals in fragment shader.
 
-```
-// from https://github.com/JoeyDeVries/LearnOpenGL
-vec3 getNormalFromMap()
-{
-    vec3 tangentNormal = texture(texNormal, uv).xyz * 2.0 - 1.0;
+    // from https://github.com/JoeyDeVries/LearnOpenGL
+    vec3 getNormalFromMap()
+    {
+        vec3 tangentNormal = texture(texNormal, uv).xyz * 2.0 - 1.0;
 
-    vec3 Q1  = dFdx(worldPos);
-    vec3 Q2  = dFdy(worldPos);
-    vec2 st1 = dFdx(uv);
-    vec2 st2 = dFdy(uv);
+        vec3 Q1  = dFdx(worldPos);
+        vec3 Q2  = dFdy(worldPos);
+        vec2 st1 = dFdx(uv);
+        vec2 st2 = dFdy(uv);
 
-    vec3 n   = normalize(worldN);
-    vec3 t  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 b  = -normalize(cross(n, t));
-    mat3 tbn = mat3(t, b, n);
+        vec3 n   = normalize(worldN);
+        vec3 t  = normalize(Q1*st2.t - Q2*st1.t);
+        vec3 b  = -normalize(cross(n, t));
+        mat3 tbn = mat3(t, b, n);
 
-    return normalize(tbn * tangentNormal);
-}
-```
+        return normalize(tbn * tangentNormal);
+    }
+
 Each component of a normal which is sampled from a normal map should be transform to `[-1, 1]` before being used.
 
 `dFdx(.)` and `dFdy(.)` are GLSL functions which can only be used in fragment shader.
@@ -78,29 +88,27 @@ You can refer to [this article](https://learnopengl.com/Advanced-Lighting/Parall
 Note that if you want to compute TBN matrix in fragment shader,
 you can try the following [code](https://github.com/JoeyDeVries/LearnOpenGL/tree/master/src/5.advanced_lighting/4.normal_mapping):
 
-```
-mat3 computeTBN(vec2 tempUv){
-    vec3 Q1  = dFdx(worldPos);
-    vec3 Q2  = dFdy(worldPos);
-    vec2 st1 = dFdx(tempUv);
-    vec2 st2 = dFdy(tempUv);
+    mat3 computeTBN(vec2 tempUv){
+        vec3 Q1  = dFdx(worldPos);
+        vec3 Q2  = dFdy(worldPos);
+        vec2 st1 = dFdx(tempUv);
+        vec2 st2 = dFdy(tempUv);
 
-    vec3 n   = normalize(worldN);
-    vec3 t  = normalize(Q1*st2.t - Q2*st1.t);
+        vec3 n   = normalize(worldN);
+        vec3 t  = normalize(Q1*st2.t - Q2*st1.t);
 
-    // in the normal mapping tutorial,
-    // they use vec3 b = -normalize(cross(n, t))
-    // but it generates weird result
-    // vec3 b  = normalize(cross(n, t));
+        // in the normal mapping tutorial,
+        // they use vec3 b = -normalize(cross(n, t))
+        // but it generates weird result
+        // vec3 b  = normalize(cross(n, t));
 
-    // or directly compute from the equation
-    vec3 b = normalize(-Q1*st2.s + Q2*st1.s);
+        // or directly compute from the equation
+        vec3 b = normalize(-Q1*st2.s + Q2*st1.s);
 
-    mat3 tbn = mat3(t, b, n);
+        mat3 tbn = mat3(t, b, n);
 
-    return tbn;
-}
-```
+        return tbn;
+    }
 
 ## Self-shadowing
 
@@ -112,10 +120,8 @@ find whether there is an intersection `C` at the distorted surface.
 
 ![shadow](./res/shadow.jpg)
 
-```
-float shadowFactor = hasIntersection ? 0.0 : 1.0;
-finalColor = ambient + (diffuse + specular) * shadowFactor;
-```
+    float shadowFactor = hasIntersection ? 0.0 : 1.0;
+    finalColor = ambient + (diffuse + specular) * shadowFactor;
 
 The above code results in a hard shadow.
 You can refer to [this thread](https://stackoverflow.com/questions/55089830/adding-shadows-to-parallax-occlusion-map) to find more details.
@@ -125,34 +131,21 @@ but it is for an area light source.
 [piellardj](https://github.com/piellardj/parallax-mapping/blob/master/shaders/parallax.frag)
 has modified it to handle a point light source:
 
-1. Set the `shadowFactor` to `1.0`.
+1.  Set the `shadowFactor` to `1.0`.
 
-2. During each iteration,
-compute the difference of depth value `ΔD = currentLayerDepth - currentDepthMapValue`.
-Here, `currentLayerDepth` and `currentDepthMapValue` correspond to the green and blue point, respectively.
+2.  During each iteration,
+    compute the difference of depth value `ΔD = currentLayerDepth - currentDepthMapValue`.
+    Here, `currentLayerDepth` and `currentDepthMapValue` correspond to the green and blue point, respectively.
 
-3. Compute an attenuation ratio `atten = ΔD / ΔL`, then `shadowFactor -= atten`.
+3.  Compute an attenuation ratio `atten = ΔD / ΔL`, then `shadowFactor -= atten`.
 
-4. After all the iterations, `atten = max(atten, 0.0)` to avoid a negative value.
+4.  After all the iterations, `atten = max(atten, 0.0)` to avoid a negative value.
 
 ![softShadow](./res/softShadow.jpg)
 
 Intuitively, each `shadowFactor -= atten` represents one obstacle.
 More obstacles result in more shadows.
 With this algorithm, we can obtain a gradient of shadow (i.e. the soft shadow).
-
-# Result
-
-Normal mapping with parallax occlusion mapping and self-shadowing.
-
-![POM](./result/result_pom.jpg)
-
-![POM2](./result/result_pom2.jpg)
-
-![POM3](./result/result_pom3.jpg)
-
-As shown in the image,
-we can obtain some faked stereoscopic effect with POM and self-shadowing.
 
 # Limitation and problem
 
